@@ -75,6 +75,6 @@
 	</div>
 
 	<p class="mt-10 text-center text-xs opacity-40" style="color:var(--text)">
-		For Georgia Tech students only · @gatech.edu required
+		By Georgia Tech students, for Georgia Tech students
 	</p>
 {/if}
