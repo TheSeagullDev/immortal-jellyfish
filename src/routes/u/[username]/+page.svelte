@@ -52,7 +52,7 @@
 
 <svelte:window onkeydown={onKeydown} />
 
-<div class="mx-auto max-w-3xl px-4 py-6">
+<div class="mx-auto max-w-3xl px-4 py-6 pb-24">
 	<p class="text-sm">
 		<a href="/" class="hover:opacity-80" style="color:var(--text-muted)">← Feed</a>
 	</p>
