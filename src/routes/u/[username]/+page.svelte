@@ -12,11 +12,16 @@
 	let openedId = $state(null);
 	let dragX = $state(0);
 	let dragging = $state(false);
+	let animating = $state(false);
+	let skipTransition = $state(false);
+	let paneW = $state(0);
 
 	let swipeStartX = 0;
 	let swipeStartY = 0;
 	/** @type {'x' | 'y' | null} */
 	let swipeAxis = null;
+	/** @type {HTMLElement | undefined} */
+	let trackEl;
 
 	const joinedLabel = $derived(
 		data.profile.joinedAt
@@ -35,6 +40,8 @@
 	const openedPost = $derived(openedIndex >= 0 ? tabPosts[openedIndex] : null);
 	const canPrev = $derived(openedIndex > 0);
 	const canNext = $derived(openedIndex >= 0 && openedIndex < tabPosts.length - 1);
+	const prevPost = $derived(canPrev ? tabPosts[openedIndex - 1] : null);
+	const nextPost = $derived(canNext ? tabPosts[openedIndex + 1] : null);
 
 	$effect(() => {
 		if (form?.error && (form.displayName || form.username)) editingIdentity = true;
@@ -44,16 +51,57 @@
 	 * @param {number} delta
 	 */
 	function go(delta) {
-		const next = openedIndex + delta;
-		if (next < 0 || next >= tabPosts.length) return;
-		openedId = tabPosts[next].id;
-		dragX = 0;
+		if (animating || dragging) return;
+		if (delta > 0 && !canNext) return;
+		if (delta < 0 && !canPrev) return;
+		settleTo(delta > 0 ? -(paneW || 360) : paneW || 360, delta);
+	}
+
+	/**
+	 * @param {number} px
+	 * @param {number} delta
+	 */
+	function settleTo(px, delta) {
+		if (animating) return;
+		animating = true;
+		dragging = false;
+		const track = trackEl;
+		let done = false;
+		const finish = () => {
+			if (done) return;
+			done = true;
+			skipTransition = true;
+			openedId = tabPosts[openedIndex + delta]?.id ?? null;
+			dragX = 0;
+			animating = false;
+			requestAnimationFrame(() => {
+				skipTransition = false;
+			});
+		};
+		if (!track) {
+			finish();
+			return;
+		}
+		/** @param {TransitionEvent} event */
+		const onEnd = (event) => {
+			if (event.target !== track || event.propertyName !== 'transform') return;
+			track.removeEventListener('transitionend', onEnd);
+			clearTimeout(timeout);
+			finish();
+		};
+		const timeout = setTimeout(() => {
+			track.removeEventListener('transitionend', onEnd);
+			finish();
+		}, 450);
+		track.addEventListener('transitionend', onEnd);
+		dragX = px;
 	}
 
 	function closePost() {
 		openedId = null;
 		dragX = 0;
 		dragging = false;
+		animating = false;
 		swipeAxis = null;
 	}
 
@@ -68,6 +116,7 @@
 	 * @param {TouchEvent} event
 	 */
 	function onSwipeStart(event) {
+		if (animating) return;
 		const touch = event.changedTouches[0];
 		if (!touch) return;
 		swipeStartX = touch.clientX;
@@ -101,8 +150,9 @@
 		if (!dragging) return;
 		dragging = false;
 		if (swipeAxis === 'x') {
-			if (dragX < -56) go(1);
-			else if (dragX > 56) go(-1);
+			const width = paneW || 360;
+			if (dragX < -56 && canNext) settleTo(-width, 1);
+			else if (dragX > 56 && canPrev) settleTo(width, -1);
 			else dragX = 0;
 		} else {
 			dragX = 0;
@@ -370,22 +420,44 @@
 			aria-label="Close post"
 			onclick={closePost}
 		></button>
-		<div
-			class="relative z-10 w-full max-w-md"
-			style="
-				transform: translateX({dragX}px);
-				transition: {dragging ? 'none' : 'transform 180ms ease'};
-				touch-action: pan-y;
-			"
-			use:swipeSurface
-		>
+		<div class="relative z-10 w-full max-w-md overflow-hidden" bind:clientWidth={paneW} use:swipeSurface>
 			{#if tabPosts.length > 1}
 				<p class="mb-2 text-center text-xs font-medium" style="color:var(--on-primary)">
 					{openedIndex + 1} / {tabPosts.length}
 				</p>
 			{/if}
-			<div class="max-h-[85dvh] overflow-y-auto rounded-xl">
-				<PostCard post={openedPost} showHeart={Boolean(data.user)} />
+			<div
+				bind:this={trackEl}
+				class="flex"
+				style="
+					width: 300%;
+					transform: translateX(calc(-33.333% + {dragX}px));
+					transition: {dragging || skipTransition
+						? 'none'
+						: 'transform 380ms cubic-bezier(0.22, 1, 0.36, 1)'};
+					will-change: transform;
+					touch-action: pan-y;
+				"
+			>
+				<div class="w-1/3 shrink-0 px-1" style="opacity:{prevPost ? 0.45 : 0}; transform: scale(0.94);">
+					{#if prevPost}
+						<div class="max-h-[85dvh] overflow-hidden rounded-xl pointer-events-none">
+							<PostCard post={prevPost} showHeart={false} />
+						</div>
+					{/if}
+				</div>
+				<div class="w-1/3 shrink-0 px-1">
+					<div class="max-h-[85dvh] overflow-y-auto rounded-xl">
+						<PostCard post={openedPost} showHeart={Boolean(data.user)} />
+					</div>
+				</div>
+				<div class="w-1/3 shrink-0 px-1" style="opacity:{nextPost ? 0.45 : 0}; transform: scale(0.94);">
+					{#if nextPost}
+						<div class="max-h-[85dvh] overflow-hidden rounded-xl pointer-events-none">
+							<PostCard post={nextPost} showHeart={false} />
+						</div>
+					{/if}
+				</div>
 			</div>
 		</div>
 	</div>
