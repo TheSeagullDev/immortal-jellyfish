@@ -28,7 +28,9 @@ npx supabase db push
 Includes:
 
 - `@gatech.edu` email enforcement on `auth.users`
-- `public.profiles` + trigger that copies `display_name` from signup metadata
+- `public.profiles` + trigger that copies name/username from signup metadata
+- `dining_halls`, `posts`, `likes`, `comments` + RLS
+- private Storage bucket `food-images` (upload only under `{user_id}/`)
 
 ## 4. App checks
 

@@ -1,5 +1,5 @@
 <script>
-	let { data } = $props();
+	let { data, form } = $props();
 
 	// Card dimensions — must match the inline styles below so CSS calc is exact.
 	const CARD_W = 192;
@@ -51,19 +51,122 @@
 </svelte:head>
 
 {#if data.user}
-	<div class="mx-auto max-w-3xl px-4 py-8">
-		<h1 class="text-2xl font-bold tracking-tight" style="color:var(--primary)">
-			Hey{data.user.user_metadata?.display_name
-				? `, ${data.user.user_metadata.display_name}`
-				: ''}
-		</h1>
-		<p class="mt-2 text-sm" style="color:var(--accent)">
-			{#if data.user.user_metadata?.username}
-				<span class="font-medium" style="color:var(--text)">@{data.user.user_metadata.username}</span>
-				·
+	<div class="mx-auto max-w-3xl px-4 py-6">
+		<h1 class="text-2xl font-bold tracking-tight" style="color:var(--primary)">Feed</h1>
+
+		<form
+			method="POST"
+			action="?/create"
+			enctype="multipart/form-data"
+			class="mt-4 space-y-3 rounded-xl border p-4"
+			style="border-color:var(--secondary);background:color-mix(in srgb,var(--background) 80%,transparent)"
+		>
+			<p class="text-sm font-semibold">New post</p>
+
+			{#if form?.error}
+				<p class="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+					{form.error}
+				</p>
 			{/if}
-			{data.user.email}
-		</p>
+
+			<label class="block text-sm">
+				<span class="mb-1 block font-medium">Photo</span>
+				<input type="file" name="image" accept="image/*" capture="environment" required class="block w-full text-sm" />
+			</label>
+
+			<label class="block text-sm">
+				<span class="mb-1 block font-medium">Caption</span>
+				<input
+					type="text"
+					name="caption"
+					value={form?.caption ?? ''}
+					required
+					maxlength="200"
+					placeholder="What's on the tray?"
+					class="block w-full rounded-md text-sm"
+					style="border-color:var(--secondary)"
+				/>
+			</label>
+
+			<div class="grid grid-cols-2 gap-3">
+				<label class="block text-sm">
+					<span class="mb-1 block font-medium">Hall</span>
+					<select
+						name="dining_hall_id"
+						required
+						class="block w-full rounded-md text-sm"
+						style="border-color:var(--secondary)"
+					>
+						<option value="">Select</option>
+						{#each data.halls ?? [] as hall}
+							<option value={hall.id} selected={form?.hallId === hall.id}>{hall.name}</option>
+						{/each}
+					</select>
+				</label>
+
+				<fieldset class="text-sm">
+					<legend class="mb-1 font-medium">Rating</legend>
+					<div class="flex flex-wrap gap-2">
+						{#each [1, 2, 3, 4, 5] as n}
+							<label class="flex items-center gap-1">
+								<input type="radio" name="rating" value={n} required checked={Number(form?.rating) === n} />
+								{n}
+							</label>
+						{/each}
+					</div>
+				</fieldset>
+			</div>
+
+			<button
+				type="submit"
+				class="w-full rounded-md px-4 py-2.5 text-sm font-semibold text-white"
+				style="background:var(--accent)"
+			>
+				Post
+			</button>
+		</form>
+
+		{#if data.feedError}
+			<p class="mt-4 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+				{data.feedError}
+			</p>
+		{:else if !data.posts?.length}
+			<p class="mt-8 text-center text-sm opacity-50">No posts yet. Be the first.</p>
+		{:else}
+			<div class="mt-6 space-y-4">
+				{#each data.posts as post}
+					<article
+						class="overflow-hidden rounded-xl border"
+						style="background:var(--background);border-color:color-mix(in srgb,var(--secondary) 70%,transparent)"
+					>
+						{#if post.imageUrl}
+							<div class="photo-frame">
+								<img src={post.imageUrl} alt="" />
+							</div>
+						{/if}
+						<div class="space-y-1 p-3">
+							<p class="font-semibold leading-tight">{post.caption}</p>
+							<p class="text-sm opacity-60">
+								{post.hallName} · @{post.username} · {post.postedAt}
+							</p>
+							<div class="flex items-center justify-between pt-1">
+								<p class="text-sm font-medium" style="color:var(--accent)">{post.rating} / 5</p>
+								<form method="POST" action="?/{post.liked ? 'unlike' : 'like'}">
+									<input type="hidden" name="post_id" value={post.id} />
+									<button
+										type="submit"
+										class="rounded-md border px-2.5 py-1 text-xs font-medium"
+										style="border-color:var(--secondary);{post.liked ? 'background:var(--primary);color:#fff' : ''}"
+									>
+										{post.liked ? 'Liked' : 'Like'} · {post.likeCount}
+									</button>
+								</form>
+							</div>
+						</div>
+					</article>
+				{/each}
+			</div>
+		{/if}
 	</div>
 {:else}
 	<!-- Hero -->
@@ -119,15 +222,15 @@
 						class="flex-none overflow-hidden rounded-xl border"
 						style="width:{CARD_W}px; margin-right:{CARD_GAP}px; background:var(--background); border-color:color-mix(in srgb, var(--secondary) 70%, transparent);"
 					>
-						<img
-							src="https://picsum.photos/seed/{post.seed}/{CARD_W}/140"
-							alt=""
-							width={CARD_W}
-							height="140"
-							class="block w-full object-cover"
-							style="height:140px"
-							loading="eager"
-						/>
+						<div class="photo-frame">
+							<img
+								src="https://picsum.photos/seed/{post.seed}/192/256"
+								alt=""
+								width="192"
+								height="256"
+								loading="eager"
+							/>
+						</div>
 						<div class="p-2.5">
 							<p class="truncate text-sm font-semibold leading-tight" style="color:var(--text)">{post.name}</p>
 							<p class="mt-0.5 truncate text-xs opacity-55" style="color:var(--text)">{post.hall} · @{post.user}</p>
