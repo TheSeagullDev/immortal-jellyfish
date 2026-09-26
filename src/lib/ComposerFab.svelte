@@ -1,5 +1,4 @@
 <script>
-	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import StarRating from './StarRating.svelte';
 
@@ -8,8 +7,6 @@
 	let composerOpen = $state(false);
 	let photoName = $state('');
 	let photoPreview = $state('');
-	/** @type {HTMLElement | undefined} */
-	let portal = $state();
 
 	const form = $derived(page.form);
 
@@ -17,12 +14,6 @@
 		if (form?.error && ('caption' in form || 'hallId' in form || 'rating' in form)) {
 			composerOpen = true;
 		}
-	});
-
-	onMount(() => {
-		if (!portal) return;
-		document.body.appendChild(portal);
-		return () => portal?.remove();
 	});
 
 	function resetPhoto() {
@@ -65,7 +56,7 @@
 
 <svelte:window onkeydown={onComposerKeydown} />
 
-<div bind:this={portal}>
+<div>
 	<button
 		type="button"
 		onclick={openComposer}
