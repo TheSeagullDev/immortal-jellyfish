@@ -25,6 +25,7 @@ export async function resolveImageUrl(supabase, path) {
 
 export const postsSelect = `
 	id,
+	author_id,
 	caption,
 	rating,
 	image_path,
@@ -49,19 +50,39 @@ export function formatPostTime(iso) {
 }
 
 /**
+ * @param {string | null | undefined} iso
+ */
+export function formatRelativeTime(iso) {
+	if (!iso) return '';
+	const then = new Date(iso).getTime();
+	if (Number.isNaN(then)) return '';
+	const sec = Math.round((Date.now() - then) / 1000);
+	if (sec < 45) return 'just now';
+	const min = Math.round(sec / 60);
+	if (min < 60) return `${min}m ago`;
+	const hr = Math.round(min / 60);
+	if (hr < 24) return `${hr}h ago`;
+	const day = Math.round(hr / 24);
+	if (day === 1) return 'Yesterday';
+	if (day < 7) return `${day}d ago`;
+	return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+/**
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase
  * @param {unknown[]} rows
  * @param {string | null} userId
  */
 export async function mapPosts(supabase, rows, userId = null) {
 	const list = Array.isArray(rows) ? rows : [];
-	return Promise.all(
+	const mapped = await Promise.all(
 		list.map(async (row) => {
 			const hall = row.dining_halls && typeof row.dining_halls === 'object' ? row.dining_halls : {};
 			const profile = row.profiles && typeof row.profiles === 'object' ? row.profiles : {};
 			const likes = Array.isArray(row.likes) ? row.likes : [];
 			return {
 				id: row.id,
+				authorId: row.author_id ?? '',
 				caption: row.caption ?? '',
 				rating: row.rating ?? 0,
 				imageUrl: await resolveImageUrl(supabase, String(row.image_path ?? '')),
@@ -70,10 +91,34 @@ export async function mapPosts(supabase, rows, userId = null) {
 				hallName: hall.name ?? '',
 				username: profile.username ?? '',
 				authorName: profile.display_name ?? '',
+				avatarUrl: '',
 				likeCount: likes.length,
 				liked: userId ? likes.some((like) => like.user_id === userId) : false,
 				foods: Array.isArray(row.foods) ? row.foods.filter((name) => typeof name === 'string') : []
 			};
 		})
 	);
+
+	const usernames = [...new Set(mapped.map((post) => post.username).filter(Boolean))];
+	if (!usernames.length) return mapped;
+
+	const { data: avatars, error } = await supabase
+		.from('profiles')
+		.select('username, avatar_path')
+		.in('username', usernames);
+
+	if (error || !avatars) {
+		return mapped;
+	}
+
+	/** @type {Record<string, string>} */
+	const urls = {};
+	for (const row of avatars) {
+		urls[row.username] = await resolveImageUrl(supabase, String(row.avatar_path ?? ''));
+	}
+
+	return mapped.map((post) => ({
+		...post,
+		avatarUrl: urls[post.username] || ''
+	}));
 }

@@ -20,3 +20,15 @@ export function isGatechEmail(email) {
 export function gatechEmailErrorMessage() {
 	return 'Use your @gatech.edu email address.';
 }
+
+/**
+ * True if the string contains an email-like ending, e.g. @gmail.com or @gatech.edu.
+ * @param {string | null | undefined} value
+ */
+export function containsEmailAddress(value) {
+	return /@[^\s@]+\.[^\s@]+/.test(String(value ?? ''));
+}
+
+export function displayNameEmailErrorMessage() {
+	return "Name can't include an email ending like @gmail.com or @gatech.edu.";
+}

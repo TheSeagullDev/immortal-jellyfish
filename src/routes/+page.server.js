@@ -44,16 +44,16 @@ export const actions = {
 		const image = form.get('image');
 
 		if (!caption) {
-			return fail(400, { caption, hallId, rating, error: 'Caption is required.' });
+			return fail(400, { caption, hallId, rating, menuDate, menuTime, error: 'Caption is required.' });
 		}
 		if (!hallId) {
-			return fail(400, { caption, hallId, rating, error: 'Pick a dining hall.' });
+			return fail(400, { caption, hallId, rating, menuDate, menuTime, error: 'Pick a dining hall.' });
 		}
 		if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
-			return fail(400, { caption, hallId, rating, error: 'Rating must be 1–5.' });
+			return fail(400, { caption, hallId, rating, menuDate, menuTime, error: 'Rating must be 1–5.' });
 		}
 		if (!(image instanceof File) || image.size === 0) {
-			return fail(400, { caption, hallId, rating, error: 'Add a photo.' });
+			return fail(400, { caption, hallId, rating, menuDate, menuTime, error: 'Add a photo.' });
 		}
 
 		const { data: hall } = await locals.supabase
@@ -86,6 +86,8 @@ export const actions = {
 					caption,
 					hallId,
 					rating,
+					menuDate,
+					menuTime,
 					error: classified.rejectReason || 'That photo does not look like dining-hall food.'
 				});
 			}
@@ -108,7 +110,7 @@ export const actions = {
 			});
 
 		if (uploadError) {
-			return fail(400, { caption, hallId, rating, error: uploadError.message });
+			return fail(400, { caption, hallId, rating, menuDate, menuTime, error: uploadError.message });
 		}
 
 		const { error: insertError } = await locals.supabase.from('posts').insert({
@@ -123,7 +125,7 @@ export const actions = {
 
 		if (insertError) {
 			await locals.supabase.storage.from('food-images').remove([imagePath]);
-			return fail(400, { caption, hallId, rating, error: insertError.message });
+			return fail(400, { caption, hallId, rating, menuDate, menuTime, error: insertError.message });
 		}
 
 		return { posted: true };

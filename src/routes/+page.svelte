@@ -1,7 +1,9 @@
 <script>
-	import { enhance } from '$app/forms';
+	import PostCard from '$lib/PostCard.svelte';
+	import LoadedImage from '$lib/LoadedImage.svelte';
+	import StarRating from '$lib/StarRating.svelte';
 
-	let { data, form } = $props();
+	let { data } = $props();
 
 	let feedPosts = $state(/** @type {any[]} */ ([]));
 
@@ -32,32 +34,36 @@
 	const CARD_W = 192;
 	const CARD_GAP = 12;
 	const PER_CARD = CARD_W + CARD_GAP;
-	const SET_SIZE = 6;
-	const SET_W = SET_SIZE * PER_CARD; // 1224px
+	const SET_SIZE = 8;
+	const SET_W = SET_SIZE * PER_CARD; // 1632px
 
 	const rows = [
 		{
 			dir: 'left',
-			speed: 18,
+			speed: 22,
 			posts: [
-				{ seed: 'mw-f1', name: 'Chicken Tikka Masala', hall: 'North Ave', rating: 4.5, user: 'gburdell3' },
-				{ seed: 'mw-f2', name: 'Beef Street Tacos',   hall: 'Brittain',   rating: 4.2, user: 'ramblinwreck' },
-				{ seed: 'mw-f3', name: 'Margherita Pizza',    hall: 'West Village', rating: 3.8, user: 'stinggt' },
-				{ seed: 'mw-f4', name: 'Poke Bowl',           hall: 'North Ave',   rating: 4.7, user: 'techie42' },
-				{ seed: 'mw-f5', name: 'Mac & Cheese',        hall: 'Brittain',   rating: 4.0, user: 'buzzy99' },
-				{ seed: 'mw-f6', name: 'Pad Thai',            hall: 'West Village', rating: 4.3, user: 'csgt01' },
+				{ src: '/demo/carousel/brittain-chicken-pita.jpeg', name: 'Chicken Pita Plate', hall: 'Brittain', rating: 4.4, user: 'gburdell3' },
+				{ src: '/demo/carousel/brittain-lo-mein.jpeg', name: 'Lo Mein & Salisbury', hall: 'Brittain', rating: 4.1, user: 'ramblinwreck' },
+				{ src: '/demo/carousel/brittain-tofu-pork.jpeg', name: 'Tofu & Pork Belly', hall: 'Brittain', rating: 3.9, user: 'stinggt' },
+				{ src: '/demo/carousel/brittain-chicken-green-beans.jpeg', name: 'Chicken, Pork & Pita', hall: 'Brittain', rating: 4.3, user: 'techie42' },
+				{ src: '/demo/carousel/brittain-pita-fruit.jpeg', name: 'Pita, Tofu & Green Beans', hall: 'Brittain', rating: 4.0, user: 'buzzy99' },
+				{ src: '/demo/carousel/brittain-fried-rice.jpeg', name: 'Fried Rice Bowl', hall: 'Brittain', rating: 4.2, user: 'csgt01' },
+				{ src: '/demo/carousel/brittain-rice-broccoli.jpeg', name: 'Rice Bowl & Broccoli', hall: 'Brittain', rating: 4.5, user: 'gabby22' },
+				{ src: '/demo/carousel/brittain-pulled-chicken-pita.jpeg', name: 'Pulled Chicken Pita', hall: 'Brittain', rating: 4.6, user: 'yellojkt' },
 			]
 		},
 		{
 			dir: 'right',
-			speed: 14,
+			speed: 18,
 			posts: [
-				{ seed: 'mw-f7',  name: 'Grilled Salmon',    hall: 'North Ave',    rating: 4.8, user: 'gabby22' },
-				{ seed: 'mw-f8',  name: 'BBQ Short Ribs',    hall: 'West Village', rating: 4.6, user: 'yellojkt' },
-				{ seed: 'mw-f9',  name: 'Veggie Stir Fry',   hall: 'Brittain',     rating: 3.5, user: 'engineerx' },
-				{ seed: 'mw-f10', name: 'Sushi Roll Set',    hall: 'Brittain',     rating: 4.9, user: 'rambler5' },
-				{ seed: 'mw-f11', name: 'Caesar Salad',      hall: 'North Ave',    rating: 3.2, user: 'csgt01' },
-				{ seed: 'mw-f12', name: 'Pasta Primavera',   hall: 'West Village', rating: 3.9, user: 'jdoe9' },
+				{ src: '/demo/carousel/north-ave-dessert-pizza.jpeg', name: 'PB&J Dessert Pizza', hall: 'North Ave', rating: 4.7, user: 'engineerx' },
+				{ src: '/demo/carousel/north-ave-chicken-cauliflower.jpeg', name: 'Chicken & Cauliflower', hall: 'North Ave', rating: 4.3, user: 'rambler5' },
+				{ src: '/demo/carousel/north-ave-chicken-pita.jpeg', name: 'Chicken Pita Plate', hall: 'North Ave', rating: 4.4, user: 'csgt01' },
+				{ src: '/demo/carousel/north-ave-breakfast-plate.jpeg', name: 'Breakfast Plate', hall: 'North Ave', rating: 4.1, user: 'jdoe9' },
+				{ src: '/demo/carousel/north-ave-roast-chicken.jpeg', name: 'Roast Chicken Plate', hall: 'North Ave', rating: 4.0, user: 'gburdell3' },
+				{ src: '/demo/carousel/north-ave-oreo-donut.jpeg', name: 'Cookies & Cream Donut', hall: 'North Ave', rating: 4.8, user: 'techie42' },
+				{ src: '/demo/carousel/west-village-tofu-pork.jpeg', name: 'Tofu & Pork Bowl', hall: 'West Village', rating: 4.2, user: 'stinggt' },
+				{ src: '/demo/carousel/west-village-fruit-cup.jpeg', name: 'Fruit Cup', hall: 'West Village', rating: 4.5, user: 'gabby22' },
 			]
 		},
 	];
@@ -78,153 +84,17 @@
 </svelte:head>
 
 {#if data.user}
-	<div class="mx-auto max-w-3xl px-4 py-6">
-		<h1 class="text-2xl font-bold tracking-tight" style="color:var(--primary)">Feed</h1>
-
-		<form
-			method="POST"
-			action="?/create"
-			enctype="multipart/form-data"
-			class="mt-4 space-y-3 rounded-xl border p-4"
-			style="border-color:var(--secondary);background:color-mix(in srgb,var(--background) 80%,transparent)"
-		>
-			<p class="text-sm font-semibold">New post</p>
-
-			{#if form?.error}
-				<p class="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
-					{form.error}
-				</p>
-			{/if}
-
-			<label class="block text-sm">
-				<span class="mb-1 block font-medium">Photo</span>
-				<input type="file" name="image" accept="image/*" capture="environment" required class="block w-full text-sm" />
-			</label>
-
-			<label class="block text-sm">
-				<span class="mb-1 block font-medium">Caption</span>
-				<input
-					type="text"
-					name="caption"
-					value={form?.caption ?? ''}
-					required
-					maxlength="200"
-					placeholder="What's on the tray?"
-					class="block w-full rounded-md text-sm"
-					style="border-color:var(--secondary)"
-				/>
-			</label>
-
-			<div class="grid grid-cols-2 gap-3">
-				<label class="block text-sm">
-					<span class="mb-1 block font-medium">Hall</span>
-					<select
-						name="dining_hall_id"
-						required
-						class="block w-full rounded-md text-sm"
-						style="border-color:var(--secondary)"
-					>
-						<option value="">Select</option>
-						{#each data.halls ?? [] as hall}
-							<option value={hall.id} selected={form?.hallId === hall.id}>{hall.name}</option>
-						{/each}
-					</select>
-				</label>
-
-				<fieldset class="text-sm">
-					<legend class="mb-1 font-medium">Rating</legend>
-					<div class="flex flex-wrap gap-2">
-						{#each [1, 2, 3, 4, 5] as n}
-							<label class="flex items-center gap-1">
-								<input type="radio" name="rating" value={n} required checked={Number(form?.rating) === n} />
-								{n}
-							</label>
-						{/each}
-					</div>
-				</fieldset>
-			</div>
-
-			<div class="grid grid-cols-2 gap-3">
-				<label class="block text-sm">
-					<span class="mb-1 block font-medium">Menu date <span class="font-normal opacity-50">(optional)</span></span>
-					<input
-						type="date"
-						name="menu_date"
-						value={form?.menuDate ?? ''}
-						class="block w-full rounded-md text-sm"
-						style="border-color:var(--secondary)"
-					/>
-				</label>
-				<label class="block text-sm">
-					<span class="mb-1 block font-medium">Time <span class="font-normal opacity-50">(optional)</span></span>
-					<input
-						type="time"
-						name="menu_time"
-						value={form?.menuTime ?? ''}
-						class="block w-full rounded-md text-sm"
-						style="border-color:var(--secondary)"
-					/>
-				</label>
-			</div>
-			<p class="text-xs opacity-50">Leave blank for today. Time picks breakfast / lunch / dinner for old photos.</p>
-
-			<button
-				type="submit"
-				class="w-full rounded-md px-4 py-2.5 text-sm font-semibold text-white"
-				style="background:var(--accent)"
-			>
-				Post
-			</button>
-		</form>
+	<div class="mx-auto max-w-3xl px-4 py-6 pb-24">
+		<h1 class="text-2xl font-bold tracking-tight" style="color:var(--text)">Feed</h1>
 
 		{#if data.feedError}
-			<p class="mt-4 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+			<p class="mt-4 rounded-md px-3 py-2 text-sm" style="background:color-mix(in srgb,#b42318 10%,var(--background));color:#8a1f16">
 				{data.feedError}
 			</p>
-		{:else if !data.posts?.length}
-			<p class="mt-8 text-center text-sm opacity-50">No posts yet. Be the first.</p>
 		{:else}
 			<div class="mt-6 space-y-4">
 				{#each feedPosts as post (post.id)}
-					<article
-						class="overflow-hidden rounded-xl border"
-						style="background:var(--background);border-color:color-mix(in srgb,var(--secondary) 70%,transparent)"
-					>
-						{#if post.imageUrl}
-							<div class="photo-frame">
-								<img src={post.imageUrl} alt="" />
-							</div>
-						{/if}
-						<div class="space-y-1 p-3">
-							<p class="font-semibold leading-tight">{post.caption}</p>
-							{#if post.foods?.length}
-								<p class="flex flex-wrap gap-1 pt-0.5">
-									{#each post.foods as name}
-										<span
-											class="rounded-full border px-2 py-0.5 text-xs"
-											style="border-color:var(--secondary)"
-										>{name}</span>
-									{/each}
-								</p>
-							{/if}
-							<p class="text-sm opacity-60">
-								{post.hallName} · @{post.username} · {post.postedAt}
-							</p>
-							<div class="flex items-center justify-between pt-1">
-								<p class="text-sm font-medium" style="color:var(--accent)">{post.rating} / 5</p>
-								<form method="POST" action="?/{post.liked ? 'unlike' : 'like'}" use:enhance={likeEnhance(post)}>
-									<input type="hidden" name="post_id" value={post.id} />
-									<button
-										type="submit"
-										class="rounded-md border px-2.5 py-1 text-xs font-medium"
-										style="border-color:var(--secondary);{post.liked ? 'background:var(--primary);color:#fff' : ''}"
-									>
-										{post.liked ? 'Liked' : 'Like'} · {post.likeCount}
-									</button>
-								</form>
-							</div>
-						</div>
-					</article>
+					<PostCard {post} {likeEnhance} />
 				{/each}
 			</div>
 		{/if}
@@ -233,33 +103,33 @@
 	<!-- Hero -->
 	<div class="px-5 pb-8 pt-12 text-center sm:px-8 sm:pb-12 sm:pt-16">
 		<span
-			class="inline-block rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-widest text-white"
-			style="background:var(--accent)"
+			class="inline-block rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-widest"
+			style="background:var(--surface);color:var(--text-muted)"
 		>
 			GT Dining · Ranked by you
 		</span>
 
-		<h1 class="mt-4 text-4xl font-extrabold tracking-tight sm:text-6xl" style="color:var(--primary)">
-			Meal<span style="color:var(--accent)">Wise</span>
+		<h1 class="mt-4 text-4xl font-extrabold tracking-tight sm:text-6xl" style="color:var(--text)">
+			Meal<span style="color:var(--primary)">Wise</span>
 		</h1>
 
-		<p class="mx-auto mt-3 max-w-sm text-base leading-relaxed sm:max-w-md sm:text-lg" style="color:var(--text);opacity:0.65">
+		<p class="mx-auto mt-3 max-w-sm text-base leading-relaxed sm:max-w-md sm:text-lg" style="color:var(--text-muted)">
 			The dining hall social feed built for Georgia Tech.
 			Post your plate, rate your food, find what's worth the walk.
 		</p>
 
-		<div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+		<div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
 			<a
 				href="/signup"
-				class="rounded-md px-6 py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
-				style="background:var(--accent)"
+				class="rounded-md px-6 py-3 text-sm font-semibold transition-opacity hover:opacity-90"
+				style="background:var(--primary);color:var(--on-primary)"
 			>
 				Create account
 			</a>
 			<a
 				href="/login"
-				class="rounded-md border px-6 py-3 text-sm font-semibold transition-opacity hover:opacity-75"
-				style="border-color:var(--primary);color:var(--primary)"
+				class="rounded-md px-6 py-3 text-sm font-semibold transition-opacity hover:opacity-80"
+				style="background:var(--surface);color:var(--text)"
 			>
 				Sign in
 			</a>
@@ -267,7 +137,7 @@
 	</div>
 
 	<!-- Scrolling post-card rows -->
-	<div class="flex flex-col gap-3 overflow-hidden pb-10">
+	<div class="flex flex-col gap-4 overflow-hidden pb-10">
 		{#each rows as row}
 			<!--
 				--set-w must equal SET_SIZE × (CARD_W + CARD_GAP) exactly.
@@ -280,22 +150,24 @@
 			>
 				{#each looped(row.posts) as post}
 					<div
-						class="flex-none overflow-hidden rounded-xl border"
-						style="width:{CARD_W}px; margin-right:{CARD_GAP}px; background:var(--background); border-color:color-mix(in srgb, var(--secondary) 70%, transparent);"
+						class="flex-none overflow-hidden rounded-xl"
+						style="width:{CARD_W}px; margin-right:{CARD_GAP}px; background:var(--surface);"
 					>
 						<div class="photo-frame">
-							<img
-								src="https://picsum.photos/seed/{post.seed}/192/256"
-								alt=""
+							<LoadedImage
+								src={post.src}
+								alt={post.name}
 								width="192"
 								height="256"
 								loading="eager"
 							/>
 						</div>
 						<div class="p-2.5">
-							<p class="truncate text-sm font-semibold leading-tight" style="color:var(--text)">{post.name}</p>
-							<p class="mt-0.5 truncate text-xs opacity-55" style="color:var(--text)">{post.hall} · @{post.user}</p>
-							<p class="mt-1 text-xs font-medium" style="color:var(--accent)">{post.rating} / 5</p>
+							<p class="truncate text-base font-semibold leading-tight" style="color:var(--text)">{post.name}</p>
+							<p class="mt-0.5 truncate text-sm" style="color:var(--text-muted)">{post.hall} · @{post.user}</p>
+							<div class="mt-1">
+								<StarRating value={post.rating} size="sm" />
+							</div>
 						</div>
 					</div>
 				{/each}
@@ -303,7 +175,7 @@
 		{/each}
 	</div>
 
-	<p class="pb-8 text-center text-xs opacity-40" style="color:var(--text)">
+	<p class="pb-8 text-center text-xs" style="color:var(--text-muted)">
 		By Georgia Tech Students, For Georgia Tech Students
 	</p>
 {/if}
