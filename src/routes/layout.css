@@ -24,6 +24,18 @@
   }
 }
 
+/* iPhone stills are 4:3; phone-held photos are 3:4. contain = no crop. */
+.photo-frame {
+  aspect-ratio: 3 / 4;
+  background: color-mix(in srgb, var(--secondary) 40%, var(--background));
+}
+.photo-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 @keyframes scroll-left {
   from { transform: translateX(0); }
   to   { transform: translateX(calc(-1 * var(--set-w))); }

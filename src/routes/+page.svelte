@@ -140,7 +140,9 @@
 						style="background:var(--background);border-color:color-mix(in srgb,var(--secondary) 70%,transparent)"
 					>
 						{#if post.imageUrl}
-							<img src={post.imageUrl} alt="" class="h-56 w-full object-cover" />
+							<div class="photo-frame">
+								<img src={post.imageUrl} alt="" />
+							</div>
 						{/if}
 						<div class="space-y-1 p-3">
 							<p class="font-semibold leading-tight">{post.caption}</p>
@@ -208,15 +210,15 @@
 						class="flex-none overflow-hidden rounded-xl border"
 						style="width:{CARD_W}px; margin-right:{CARD_GAP}px; background:var(--background); border-color:color-mix(in srgb, var(--secondary) 70%, transparent);"
 					>
-						<img
-							src="https://picsum.photos/seed/{post.seed}/{CARD_W}/140"
-							alt=""
-							width={CARD_W}
-							height="140"
-							class="block w-full object-cover"
-							style="height:140px"
-							loading="eager"
-						/>
+						<div class="photo-frame">
+							<img
+								src="https://picsum.photos/seed/{post.seed}/192/256"
+								alt=""
+								width="192"
+								height="256"
+								loading="eager"
+							/>
+						</div>
 						<div class="p-2.5">
 							<p class="truncate text-sm font-semibold leading-tight" style="color:var(--text)">{post.name}</p>
 							<p class="mt-0.5 truncate text-xs opacity-55" style="color:var(--text)">{post.hall} · @{post.user}</p>
