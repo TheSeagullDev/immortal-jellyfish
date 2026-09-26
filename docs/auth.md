@@ -19,12 +19,18 @@ In the Supabase dashboard:
    - production callback when you deploy
 3. Optional for local demos: turn **off** “Confirm email” so signup signs you in immediately
 
-## 3. Domain trigger (required)
+## 3. Migrations
 
-Run `supabase/migrations/20260926000000_enforce_gatech_email.sql` in the SQL Editor.
+```bash
+npx supabase db push
+```
 
-This blocks non-`@gatech.edu` users at the database even if someone bypasses the form.
+Includes:
+
+- `@gatech.edu` email enforcement on `auth.users`
+- `public.profiles` + trigger that copies `display_name` from signup metadata
 
 ## 4. App checks
 
 `src/lib/auth/email.js` + the `/login` form actions reject non-GT emails before calling Auth.
+Signup also collects a display name and stores it in `user_metadata.display_name` (and `profiles` via the trigger).

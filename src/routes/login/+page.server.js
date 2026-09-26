@@ -43,15 +43,31 @@ export const actions = {
 
 	signup: async ({ request, locals, url }) => {
 		const form = await request.formData();
+		const name = String(form.get('name') ?? '').trim();
 		const email = normalizeEmail(String(form.get('email') ?? ''));
 		const password = String(form.get('password') ?? '');
 
+		if (!name) {
+			return fail(400, {
+				name,
+				email,
+				error: 'Name is required.',
+				mode: 'signup'
+			});
+		}
+
 		if (!isGatechEmail(email)) {
-			return fail(400, { email, error: gatechEmailErrorMessage(), mode: 'signup' });
+			return fail(400, {
+				name,
+				email,
+				error: gatechEmailErrorMessage(),
+				mode: 'signup'
+			});
 		}
 
 		if (password.length < 6) {
 			return fail(400, {
+				name,
 				email,
 				error: 'Password must be at least 6 characters.',
 				mode: 'signup'
@@ -62,12 +78,16 @@ export const actions = {
 			email,
 			password,
 			options: {
-				emailRedirectTo: `${url.origin}/auth/callback`
+				emailRedirectTo: `${url.origin}/auth/callback`,
+				data: {
+					display_name: name
+				}
 			}
 		});
 
 		if (error) {
 			return fail(400, {
+				name,
 				email,
 				error: error.message,
 				mode: 'signup'

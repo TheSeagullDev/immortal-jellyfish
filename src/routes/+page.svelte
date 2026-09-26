@@ -7,7 +7,11 @@
 </svelte:head>
 
 {#if data.user}
-	<h1 class="text-2xl font-semibold tracking-tight">You're in</h1>
+	<h1 class="text-2xl font-semibold tracking-tight">
+		Hey{data.user.user_metadata?.display_name
+			? `, ${data.user.user_metadata.display_name}`
+			: ''}
+	</h1>
 	<p class="mt-2 text-stone-600">
 		Signed in as <span class="font-medium text-stone-900">{data.user.email}</span>.
 	</p>

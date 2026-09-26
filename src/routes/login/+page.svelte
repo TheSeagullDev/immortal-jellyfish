@@ -36,6 +36,21 @@
 	{/if}
 
 	<form method="POST" action="?/{mode}" class="mt-6 space-y-4">
+		{#if mode === 'signup'}
+			<label class="block text-sm">
+				<span class="mb-1 block font-medium text-stone-700">Name</span>
+				<input
+					type="text"
+					name="name"
+					value={form?.name ?? ''}
+					required
+					autocomplete="name"
+					placeholder="George P. Burdell"
+					class="block w-full rounded-md border-stone-300 shadow-sm focus:border-stone-500 focus:ring-stone-500"
+				/>
+			</label>
+		{/if}
+
 		<label class="block text-sm">
 			<span class="mb-1 block font-medium text-stone-700">Email</span>
 			<input

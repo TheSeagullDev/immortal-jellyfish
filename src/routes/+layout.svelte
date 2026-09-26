@@ -13,7 +13,9 @@
 			<a href="/" class="font-semibold tracking-tight">Dining Hall</a>
 			<nav class="flex items-center gap-3 text-sm">
 				{#if data.user}
-					<span class="hidden text-stone-500 sm:inline">{data.user.email}</span>
+					<span class="hidden text-stone-500 sm:inline"
+						>{data.user.user_metadata?.display_name ?? data.user.email}</span
+					>
 					<form method="POST" action="/logout">
 						<button
 							type="submit"
