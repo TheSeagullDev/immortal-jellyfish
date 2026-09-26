@@ -144,6 +144,30 @@
 				</fieldset>
 			</div>
 
+			<div class="grid grid-cols-2 gap-3">
+				<label class="block text-sm">
+					<span class="mb-1 block font-medium">Menu date <span class="font-normal opacity-50">(optional)</span></span>
+					<input
+						type="date"
+						name="menu_date"
+						value={form?.menuDate ?? ''}
+						class="block w-full rounded-md text-sm"
+						style="border-color:var(--secondary)"
+					/>
+				</label>
+				<label class="block text-sm">
+					<span class="mb-1 block font-medium">Time <span class="font-normal opacity-50">(optional)</span></span>
+					<input
+						type="time"
+						name="menu_time"
+						value={form?.menuTime ?? ''}
+						class="block w-full rounded-md text-sm"
+						style="border-color:var(--secondary)"
+					/>
+				</label>
+			</div>
+			<p class="text-xs opacity-50">Leave blank for today. Time picks breakfast / lunch / dinner for old photos.</p>
+
 			<button
 				type="submit"
 				class="w-full rounded-md px-4 py-2.5 text-sm font-semibold text-white"
@@ -173,6 +197,16 @@
 						{/if}
 						<div class="space-y-1 p-3">
 							<p class="font-semibold leading-tight">{post.caption}</p>
+							{#if post.foods?.length}
+								<p class="flex flex-wrap gap-1 pt-0.5">
+									{#each post.foods as name}
+										<span
+											class="rounded-full border px-2 py-0.5 text-xs"
+											style="border-color:var(--secondary)"
+										>{name}</span>
+									{/each}
+								</p>
+							{/if}
 							<p class="text-sm opacity-60">
 								{post.hallName} · @{post.username} · {post.postedAt}
 							</p>

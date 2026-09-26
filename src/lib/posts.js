@@ -28,6 +28,7 @@ export const postsSelect = `
 	caption,
 	rating,
 	image_path,
+	foods,
 	created_at,
 	dining_halls!dining_hall_id ( name, slug ),
 	profiles!author_id ( display_name, username ),
@@ -70,7 +71,8 @@ export async function mapPosts(supabase, rows, userId = null) {
 				username: profile.username ?? '',
 				authorName: profile.display_name ?? '',
 				likeCount: likes.length,
-				liked: userId ? likes.some((like) => like.user_id === userId) : false
+				liked: userId ? likes.some((like) => like.user_id === userId) : false,
+				foods: Array.isArray(row.foods) ? row.foods.filter((name) => typeof name === 'string') : []
 			};
 		})
 	);

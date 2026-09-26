@@ -60,6 +60,16 @@
 						{/if}
 						<div class="space-y-1 p-3">
 							<p class="font-semibold leading-tight">{post.caption}</p>
+							{#if post.foods?.length}
+								<p class="flex flex-wrap gap-1 pt-0.5">
+									{#each post.foods as name}
+										<span
+											class="rounded-full border px-2 py-0.5 text-xs"
+											style="border-color:var(--secondary)"
+										>{name}</span>
+									{/each}
+								</p>
+							{/if}
 							<p class="text-sm opacity-60">
 								{post.hallName} · {post.postedAt}
 							</p>

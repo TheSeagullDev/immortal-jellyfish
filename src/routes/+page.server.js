@@ -1,4 +1,6 @@
 import { fail } from '@sveltejs/kit';
+import { classifyPlate } from '$lib/classify-food.js';
+import { fetchTodayFoods, menuWhen } from '$lib/nutrislice.js';
 import { mapPosts, postsSelect } from '$lib/posts.js';
 
 /** @type {import('./$types').PageServerLoad} */
@@ -37,6 +39,8 @@ export const actions = {
 		const caption = String(form.get('caption') ?? '').trim();
 		const hallId = String(form.get('dining_hall_id') ?? '');
 		const rating = Number(form.get('rating'));
+		const menuDate = String(form.get('menu_date') ?? '').trim();
+		const menuTime = String(form.get('menu_time') ?? '').trim();
 		const image = form.get('image');
 
 		if (!caption) {
@@ -52,13 +56,53 @@ export const actions = {
 			return fail(400, { caption, hallId, rating, error: 'Add a photo.' });
 		}
 
+		const { data: hall } = await locals.supabase
+			.from('dining_halls')
+			.select('slug')
+			.eq('id', hallId)
+			.maybeSingle();
+
+		const { isoDate, meals } = menuWhen(menuDate, menuTime);
+		const menu = await fetchTodayFoods(hall?.slug, isoDate, meals);
+		console.log('[classify] menu', {
+			hall: hall?.slug,
+			date: menu.date,
+			meals,
+			itemCount: menu.foods.length,
+			errors: menu.errors
+		});
+		const imageBytes = new Uint8Array(await image.arrayBuffer());
+		let foods = [];
+
+		try {
+			const classified = await classifyPlate({
+				bytes: imageBytes,
+				mimeType: image.type || 'image/jpeg',
+				menu: menu.foods
+			});
+
+			if (!classified.skipped && !classified.isFood) {
+				return fail(400, {
+					caption,
+					hallId,
+					rating,
+					error: classified.rejectReason || 'That photo does not look like dining-hall food.'
+				});
+			}
+
+			foods = classified.matches.map((match) => match.name);
+		} catch (err) {
+			console.error('plate classify failed', err);
+			// Don't block posting if Gemini / Nutrislice is down.
+		}
+
 		const postId = crypto.randomUUID();
 		const ext = image.name.includes('.') ? image.name.split('.').pop()?.toLowerCase() : 'jpg';
 		const imagePath = `${user.id}/${postId}.${ext || 'jpg'}`;
 
 		const { error: uploadError } = await locals.supabase.storage
 			.from('food-images')
-			.upload(imagePath, image, {
+			.upload(imagePath, imageBytes, {
 				contentType: image.type || 'image/jpeg',
 				upsert: false
 			});
@@ -73,7 +117,8 @@ export const actions = {
 			dining_hall_id: hallId,
 			image_path: imagePath,
 			caption,
-			rating
+			rating,
+			foods
 		});
 
 		if (insertError) {
