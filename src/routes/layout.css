@@ -11,8 +11,8 @@
     --muted: #dce4ec;
     --primary: #3d7eb8;
     --on-primary: #f7f9fb;
-    --star: #8a9ea6;
-    --star-empty: #6d7c88;
+    --star: #87aab9;
+    --star-empty: #c5d3db;
   }
   .dark {
     --text: #e4eaf0;
@@ -22,8 +22,8 @@
     --muted: #354454;
     --primary: #5a9fd0;
     --on-primary: #f7f9fb;
-    --star: #8a9ea6;
-    --star-empty: #8a98a4;
+    --star: #9bb9c6;
+    --star-empty: #4a5c68;
   }
 
   html {
