@@ -1,5 +1,32 @@
 <script>
+	import { enhance } from '$app/forms';
+
 	let { data, form } = $props();
+
+	let feedPosts = $state(/** @type {any[]} */ ([]));
+
+	$effect(() => {
+		feedPosts = (data.posts ?? []).map((post) => ({ ...post }));
+	});
+
+	/**
+	 * @param {any} post
+	 */
+	function likeEnhance(post) {
+		return () => {
+			const prevLiked = post.liked;
+			const prevCount = post.likeCount;
+			post.liked = !post.liked;
+			post.likeCount += post.liked ? 1 : -1;
+
+			return async ({ result }) => {
+				if (result.type === 'failure' || result.type === 'error') {
+					post.liked = prevLiked;
+					post.likeCount = prevCount;
+				}
+			};
+		};
+	}
 
 	// Card dimensions — must match the inline styles below so CSS calc is exact.
 	const CARD_W = 192;
@@ -134,7 +161,7 @@
 			<p class="mt-8 text-center text-sm opacity-50">No posts yet. Be the first.</p>
 		{:else}
 			<div class="mt-6 space-y-4">
-				{#each data.posts as post}
+				{#each feedPosts as post (post.id)}
 					<article
 						class="overflow-hidden rounded-xl border"
 						style="background:var(--background);border-color:color-mix(in srgb,var(--secondary) 70%,transparent)"
@@ -151,7 +178,7 @@
 							</p>
 							<div class="flex items-center justify-between pt-1">
 								<p class="text-sm font-medium" style="color:var(--accent)">{post.rating} / 5</p>
-								<form method="POST" action="?/{post.liked ? 'unlike' : 'like'}">
+								<form method="POST" action="?/{post.liked ? 'unlike' : 'like'}" use:enhance={likeEnhance(post)}>
 									<input type="hidden" name="post_id" value={post.id} />
 									<button
 										type="submit"
