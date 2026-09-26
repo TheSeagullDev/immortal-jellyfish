@@ -2,8 +2,17 @@
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import AccountMenu from '$lib/AccountMenu.svelte';
+	import ComposerFab from '$lib/ComposerFab.svelte';
+	import { page } from '$app/state';
 
 	let { data, children } = $props();
+
+	const signedIn = $derived(Boolean(data.user || data.session));
+	const showComposerFab = $derived.by(() => {
+		if (!signedIn) return false;
+		const path = page.url.pathname;
+		return path === '/' || path === '/profile' || path.startsWith('/u/');
+	});
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
@@ -47,3 +56,6 @@
 		{@render children()}
 	</main>
 </div>
+{#if showComposerFab}
+	<ComposerFab halls={data.halls ?? []} signedIn={signedIn} />
+{/if}

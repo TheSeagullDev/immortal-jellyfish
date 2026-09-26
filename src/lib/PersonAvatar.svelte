@@ -1,4 +1,6 @@
 <script>
+	import LoadedImage from './LoadedImage.svelte';
+
 	let { src = '', size = 'md', alt = '' } = $props();
 
 	const px = $derived(size === 'sm' ? 28 : size === 'lg' ? 144 : 40);
@@ -10,7 +12,7 @@
 	style="width:{px}px;height:{px}px;background:var(--surface);color:var(--text-muted)"
 >
 	{#if src}
-		<img {src} {alt} class="h-full w-full object-cover" />
+		<LoadedImage {src} {alt} />
 	{:else}
 		<svg width={icon} height={icon} viewBox="0 0 24 24" fill="none" aria-hidden="true">
 			<circle cx="12" cy="8" r="3.4" stroke="currentColor" stroke-width="1.6" />

@@ -1,6 +1,7 @@
 <script>
 	import { enhance } from '$app/forms';
 	import PersonAvatar from './PersonAvatar.svelte';
+	import LoadedImage from './LoadedImage.svelte';
 	import StarRating from './StarRating.svelte';
 	import { formatRelativeTime } from './posts.js';
 
@@ -31,7 +32,7 @@
 	</div>
 	{#if post.imageUrl}
 		<div class="photo-frame">
-			<img src={post.imageUrl} alt="" />
+			<LoadedImage src={post.imageUrl} />
 		</div>
 	{/if}
 	<div class="space-y-2 p-3">
