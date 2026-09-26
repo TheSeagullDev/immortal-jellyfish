@@ -1,6 +1,7 @@
 <script>
 	import { enhance } from '$app/forms';
 	import PersonAvatar from '$lib/PersonAvatar.svelte';
+	import LoadedImage from '$lib/LoadedImage.svelte';
 	import PostCard from '$lib/PostCard.svelte';
 
 	let { data, form } = $props();
@@ -242,12 +243,12 @@
 				{#each tabPosts as post (post.id)}
 					<button
 						type="button"
-						class="aspect-square overflow-hidden"
+						class="block aspect-square w-full overflow-hidden"
 						style="background:var(--muted)"
 						onclick={() => (openedPost = post)}
 					>
 						{#if post.imageUrl}
-							<img src={post.imageUrl} alt="" class="h-full w-full object-cover" />
+							<LoadedImage src={post.imageUrl} />
 						{/if}
 					</button>
 				{/each}

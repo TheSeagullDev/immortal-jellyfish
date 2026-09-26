@@ -1,5 +1,6 @@
 <script>
 	import PostCard from '$lib/PostCard.svelte';
+	import LoadedImage from '$lib/LoadedImage.svelte';
 	import StarRating from '$lib/StarRating.svelte';
 
 	let { data, form } = $props();
@@ -215,12 +216,9 @@
 							{photoName ? 'Change photo' : 'Choose photo'}
 						</label>
 						{#if photoPreview}
-							<img
-								src={photoPreview}
-								alt=""
-								class="mt-2 max-h-40 w-full rounded-md object-contain"
-								style="background:var(--surface)"
-							/>
+							<div class="photo-frame mt-2 overflow-hidden rounded-md">
+								<LoadedImage src={photoPreview} class="h-full w-full object-contain" />
+							</div>
 						{/if}
 						{#if photoName}
 							<p class="mt-1.5 truncate text-xs" style="color:var(--text-muted)">{photoName}</p>
@@ -325,7 +323,7 @@
 						style="width:{CARD_W}px; margin-right:{CARD_GAP}px; background:var(--surface);"
 					>
 						<div class="photo-frame">
-							<img
+							<LoadedImage
 								src={post.src}
 								alt={post.name}
 								width="192"
