@@ -20,7 +20,7 @@ export const load = async ({ locals }) => {
 	}
 
 	return {
-		posts: await mapPosts(locals.supabase, postRows ?? []),
+		posts: await mapPosts(locals.supabase, postRows ?? [], user.id),
 		halls: halls ?? []
 	};
 };
@@ -82,5 +82,50 @@ export const actions = {
 		}
 
 		return { posted: true };
+	},
+
+	like: async ({ request, locals }) => {
+		const { user } = await locals.safeGetSession();
+		if (!user) {
+			return fail(401, { error: 'Sign in to like.' });
+		}
+
+		const form = await request.formData();
+		const postId = String(form.get('post_id') ?? '');
+		if (!postId) {
+			return fail(400, { error: 'Missing post.' });
+		}
+
+		const { error } = await locals.supabase.from('likes').insert({
+			post_id: postId,
+			user_id: user.id
+		});
+
+		if (error && error.code !== '23505') {
+			return fail(400, { error: error.message });
+		}
+	},
+
+	unlike: async ({ request, locals }) => {
+		const { user } = await locals.safeGetSession();
+		if (!user) {
+			return fail(401, { error: 'Sign in to unlike.' });
+		}
+
+		const form = await request.formData();
+		const postId = String(form.get('post_id') ?? '');
+		if (!postId) {
+			return fail(400, { error: 'Missing post.' });
+		}
+
+		const { error } = await locals.supabase
+			.from('likes')
+			.delete()
+			.eq('post_id', postId)
+			.eq('user_id', user.id);
+
+		if (error) {
+			return fail(400, { error: error.message });
+		}
 	}
 };

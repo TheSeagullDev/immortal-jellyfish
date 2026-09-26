@@ -147,9 +147,21 @@
 						<div class="space-y-1 p-3">
 							<p class="font-semibold leading-tight">{post.caption}</p>
 							<p class="text-sm opacity-60">
-								{post.hallName} · @{post.username}
+								{post.hallName} · @{post.username} · {post.postedAt}
 							</p>
-							<p class="text-sm font-medium" style="color:var(--accent)">{post.rating} / 5</p>
+							<div class="flex items-center justify-between pt-1">
+								<p class="text-sm font-medium" style="color:var(--accent)">{post.rating} / 5</p>
+								<form method="POST" action="?/{post.liked ? 'unlike' : 'like'}">
+									<input type="hidden" name="post_id" value={post.id} />
+									<button
+										type="submit"
+										class="rounded-md border px-2.5 py-1 text-xs font-medium"
+										style="border-color:var(--secondary);{post.liked ? 'background:var(--primary);color:#fff' : ''}"
+									>
+										{post.liked ? 'Liked' : 'Like'} · {post.likeCount}
+									</button>
+								</form>
+							</div>
 						</div>
 					</article>
 				{/each}
