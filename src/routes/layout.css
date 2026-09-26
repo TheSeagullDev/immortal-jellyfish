@@ -1,3 +1,34 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
+
+@layer base {
+  :root {
+    --text: #050505;
+    --background: #fafafa;
+    --primary: #4591d3;
+    --secondary: #e8d5c4;
+    --accent: #d97c5a;
+  }
+  .dark {
+    --text: #fafafa;
+    --background: #0f0f0f;
+    --primary: #2c77ba;
+    --secondary: #3a2218;
+    --accent: #c4623c;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--text);
+  }
+}
+
+@keyframes scroll-left {
+  from { transform: translateX(0); }
+  to   { transform: translateX(calc(-1 * var(--set-w))); }
+}
+@keyframes scroll-right {
+  from { transform: translateX(calc(-1 * var(--set-w))); }
+  to   { transform: translateX(0); }
+}
