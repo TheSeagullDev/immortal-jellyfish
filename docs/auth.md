@@ -34,5 +34,5 @@ Includes:
 
 ## 4. App checks
 
-`src/lib/auth/email.js` + the `/login` form actions reject non-GT emails before calling Auth.
+`src/lib/auth/email.js` plus the `/login` and `/signup` form actions reject non-GT emails before calling Auth.
 Signup also collects **name** + **username**, stored in `user_metadata` and `public.profiles`.

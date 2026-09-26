@@ -1,27 +1,17 @@
 <script>
-	let { form, data } = $props();
+	let { form } = $props();
 </script>
 
 <svelte:head>
-	<title>Sign in · MealWise</title>
+	<title>Create account · MealWise</title>
 </svelte:head>
 
 <section class="px-5 py-8 sm:px-8">
 	<div class="mx-auto max-w-md">
-		<h1 class="text-2xl font-bold tracking-tight" style="color:var(--text)">Sign in</h1>
+		<h1 class="text-2xl font-bold tracking-tight" style="color:var(--text)">Create account</h1>
 		<p class="mt-2 text-sm" style="color:var(--text-muted)">
 			Georgia Tech emails only (<span class="font-medium">@gatech.edu</span>).
 		</p>
-
-		{#if data.registered}
-			<p
-				class="mt-4 rounded-md px-3 py-2 text-sm"
-				style="background:var(--surface);color:var(--text)"
-				role="status"
-			>
-				Check your inbox to confirm your email, then sign in.
-			</p>
-		{/if}
 
 		{#if form?.error}
 			<p
@@ -34,6 +24,34 @@
 		{/if}
 
 		<form method="POST" class="mt-6 space-y-4">
+			<label class="block text-sm">
+				<span class="mb-1 block font-medium" style="color:var(--text)">Name</span>
+				<input
+					type="text"
+					name="name"
+					value={form?.name ?? ''}
+					required
+					autocomplete="name"
+					placeholder="George P. Burdell"
+					class="block w-full rounded-md"
+				/>
+			</label>
+
+			<label class="block text-sm">
+				<span class="mb-1 block font-medium" style="color:var(--text)">Username</span>
+				<input
+					type="text"
+					name="username"
+					value={form?.username ?? ''}
+					required
+					minlength="3"
+					maxlength="20"
+					autocomplete="username"
+					placeholder="gburdell"
+					class="block w-full rounded-md"
+				/>
+			</label>
+
 			<label class="block text-sm">
 				<span class="mb-1 block font-medium" style="color:var(--text)">Email</span>
 				<input
@@ -54,7 +72,7 @@
 					name="password"
 					required
 					minlength="6"
-					autocomplete="current-password"
+					autocomplete="new-password"
 					class="block w-full rounded-md"
 				/>
 			</label>
@@ -64,13 +82,13 @@
 				class="w-full rounded-md px-4 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90"
 				style="background:var(--primary);color:var(--on-primary)"
 			>
-				Sign in
+				Create account
 			</button>
 		</form>
 
 		<p class="mt-6 text-center text-sm" style="color:var(--text-muted)">
-			No account?
-			<a href="/signup" class="font-semibold" style="color:var(--primary)">Sign up</a>
+			Already have an account?
+			<a href="/login" class="font-semibold" style="color:var(--primary)">Sign in</a>
 		</p>
 	</div>
 </section>
