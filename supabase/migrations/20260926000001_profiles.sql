@@ -5,8 +5,8 @@ create table if not exists public.profiles (
   display_name text not null,
   username text not null unique,
   created_at timestamptz not null default now(),
-  constraint profiles_username_format check (
-    username ~ '^[a-z0-9]([a-z0-9._]{1,22}[a-z0-9])?$'
+  constraint profiles_username_length check (
+    length(username) between 3 and 20
   )
 );
 
@@ -44,7 +44,7 @@ begin
     lower(regexp_replace(fallback_name, '[^a-zA-Z0-9._]', '', 'g'))
   );
 
-  if username_value = '' or username_value !~ '^[a-z0-9]([a-z0-9._]{1,22}[a-z0-9])?$' then
+  if username_value = '' or length(username_value) < 3 then
     username_value := 'user' || substr(replace(new.id::text, '-', ''), 1, 8);
   end if;
 

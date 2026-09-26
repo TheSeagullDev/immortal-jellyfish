@@ -1,20 +1,20 @@
-const USERNAME_PATTERN = /^[a-z0-9]([a-z0-9._]{1,22}[a-z0-9])?$/;
+// 3–20 chars, no spaces or characters that break URLs (@, /, ?, #, etc.)
+const USERNAME_PATTERN = /^[^\s@/?#&=%+]{3,20}$/;
 
 /**
  * @param {string | null | undefined} username
  */
 export function normalizeUsername(username) {
-	return typeof username === 'string' ? username.trim().toLowerCase() : '';
+	return typeof username === 'string' ? username.trim() : '';
 }
 
 /**
  * @param {string | null | undefined} username
  */
 export function isValidUsername(username) {
-	const normalized = normalizeUsername(username);
-	return USERNAME_PATTERN.test(normalized);
+	return USERNAME_PATTERN.test(normalizeUsername(username));
 }
 
 export function usernameErrorMessage() {
-	return 'Username must be 3–24 characters: letters, numbers, dots, or underscores.';
+	return 'Username must be 3–20 characters with no spaces.';
 }

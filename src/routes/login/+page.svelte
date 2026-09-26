@@ -58,9 +58,8 @@
 					value={form?.username ?? ''}
 					required
 					minlength="3"
-					maxlength="24"
+					maxlength="20"
 					autocomplete="username"
-					pattern="[a-zA-Z0-9]([a-zA-Z0-9._]{1,22}[a-zA-Z0-9])?"
 					placeholder="gburdell"
 					class="block w-full rounded-md border-stone-300 shadow-sm focus:border-stone-500 focus:ring-stone-500"
 				/>
