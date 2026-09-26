@@ -416,7 +416,7 @@
 		<button
 			type="button"
 			class="absolute inset-0"
-			style="background:color-mix(in srgb, var(--text) 40%, transparent)"
+			style="background:color-mix(in srgb, var(--text) 78%, transparent)"
 			aria-label="Close post"
 			onclick={closePost}
 		></button>
@@ -439,19 +439,19 @@
 					touch-action: pan-y;
 				"
 			>
-				<div class="w-1/3 shrink-0 px-1" style="opacity:{prevPost ? 0.45 : 0}; transform: scale(0.94);">
+				<div class="w-1/3 shrink-0">
 					{#if prevPost}
 						<div class="max-h-[85dvh] overflow-hidden rounded-xl pointer-events-none">
 							<PostCard post={prevPost} showHeart={false} />
 						</div>
 					{/if}
 				</div>
-				<div class="w-1/3 shrink-0 px-1">
+				<div class="w-1/3 shrink-0">
 					<div class="max-h-[85dvh] overflow-y-auto rounded-xl">
 						<PostCard post={openedPost} showHeart={Boolean(data.user)} />
 					</div>
 				</div>
-				<div class="w-1/3 shrink-0 px-1" style="opacity:{nextPost ? 0.45 : 0}; transform: scale(0.94);">
+				<div class="w-1/3 shrink-0">
 					{#if nextPost}
 						<div class="max-h-[85dvh] overflow-hidden rounded-xl pointer-events-none">
 							<PostCard post={nextPost} showHeart={false} />
