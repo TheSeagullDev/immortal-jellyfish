@@ -35,11 +35,14 @@
 		},
 	];
 
-	/** @param {number} r */
-	function stars(r) {
-		const full = Math.floor(r);
-		const half = r - full >= 0.5;
-		return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(5 - full - (half ? 1 : 0));
+	// Repeat each set enough times that the strip always covers wide viewports.
+	const COPIES = 4;
+
+	/**
+	 * @param {typeof rows[0]['posts']} posts
+	 */
+	function looped(posts) {
+		return Array.from({ length: COPIES }, () => posts).flat();
 	}
 </script>
 
@@ -111,7 +114,7 @@
 				class="flex"
 				style="--set-w:{SET_W}px; animation: scroll-{row.dir} {row.speed}s linear infinite; will-change: transform;"
 			>
-				{#each [...row.posts, ...row.posts] as post}
+				{#each looped(row.posts) as post}
 					<div
 						class="flex-none overflow-hidden rounded-xl border"
 						style="width:{CARD_W}px; margin-right:{CARD_GAP}px; background:var(--background); border-color:color-mix(in srgb, var(--secondary) 70%, transparent);"
@@ -137,6 +140,6 @@
 	</div>
 
 	<p class="pb-8 text-center text-xs opacity-40" style="color:var(--text)">
-		Georgia Tech students only · @gatech.edu required
+		By Georgia Tech Students, For Georgia Tech Students
 	</p>
 {/if}
