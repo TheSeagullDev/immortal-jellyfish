@@ -28,3 +28,7 @@ export function gatechEmailErrorMessage() {
 export function containsEmailAddress(value) {
 	return /@[^\s@]+\.[^\s@]+/.test(String(value ?? ''));
 }
+
+export function displayNameEmailErrorMessage() {
+	return "Name can't include an email ending like @gmail.com or @gatech.edu.";
+}

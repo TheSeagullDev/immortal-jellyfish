@@ -10,6 +10,10 @@
 	let hover = $state(0);
 	let selected = $state(Math.round(Number(value) || 0));
 
+	$effect(() => {
+		selected = Math.round(Number(value) || 0);
+	});
+
 	const filled = $derived(
 		interactive
 			? hover || selected || Math.round(Number(value) || 0)
@@ -34,7 +38,17 @@
 	aria-label="{filled} out of 5 stars"
 >
 	{#if interactive}
-		<input type="hidden" {name} value={selected} />
+		<input
+			type="text"
+			{name}
+			value={selected || ''}
+			required
+			pattern="[1-5]"
+			inputmode="none"
+			tabindex="-1"
+			aria-hidden="true"
+			class="sr-only"
+		/>
 	{/if}
 	{#each [1, 2, 3, 4, 5] as n (n)}
 		{#if interactive}

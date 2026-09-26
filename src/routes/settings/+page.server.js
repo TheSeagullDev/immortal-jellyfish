@@ -1,4 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
+import { containsEmailAddress, displayNameEmailErrorMessage } from '$lib/auth/email.js';
 import { isValidUsername, normalizeUsername, usernameErrorMessage } from '$lib/auth/username.js';
 
 /** @type {import('./$types').PageServerLoad} */
@@ -34,6 +35,13 @@ export const actions = {
 
 		if (!displayName) {
 			return fail(400, { field: 'name', displayName, error: 'Name is required.' });
+		}
+		if (containsEmailAddress(displayName)) {
+			return fail(400, {
+				field: 'name',
+				displayName,
+				error: displayNameEmailErrorMessage()
+			});
 		}
 
 		const { error: updateError } = await locals.supabase

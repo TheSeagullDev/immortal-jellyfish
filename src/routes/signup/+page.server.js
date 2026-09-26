@@ -1,6 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import {
 	containsEmailAddress,
+	displayNameEmailErrorMessage,
 	gatechEmailErrorMessage,
 	isGatechEmail,
 	normalizeEmail
@@ -35,7 +36,7 @@ export const actions = {
 				name,
 				username,
 				email,
-				error: "Name can't include an email ending like @gmail.com or @gatech.edu."
+				error: displayNameEmailErrorMessage()
 			});
 		}
 

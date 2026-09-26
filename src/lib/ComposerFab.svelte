@@ -8,12 +8,15 @@
 	let composerOpen = $state(false);
 	let photoName = $state('');
 	let photoPreview = $state('');
+	let rating = $state(0);
 
 	const form = $derived(page.form);
 
 	$effect(() => {
 		if (form?.error && ('caption' in form || 'hallId' in form || 'rating' in form)) {
 			composerOpen = true;
+			const n = Number(form.rating);
+			if (n >= 1 && n <= 5) rating = n;
 		}
 	});
 
@@ -33,6 +36,7 @@
 
 	function closeComposer() {
 		composerOpen = false;
+		rating = 0;
 		resetPhoto();
 	}
 
@@ -196,13 +200,19 @@
 
 						<fieldset class="text-sm">
 							<legend class="mb-1 font-medium">Rating</legend>
-							<StarRating interactive name="rating" value={form?.rating ?? 0} />
+							<StarRating
+								interactive
+								name="rating"
+								value={rating}
+								onSelect={(n) => (rating = n)}
+							/>
 						</fieldset>
 					</div>
 
 					<button
 						type="submit"
-						class="w-full rounded-md px-4 py-2.5 text-sm font-semibold"
+						disabled={rating < 1}
+						class="w-full rounded-md px-4 py-2.5 text-sm font-semibold disabled:opacity-50"
 						style="background:var(--primary);color:var(--on-primary)"
 					>
 						Post

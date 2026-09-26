@@ -1,4 +1,5 @@
 import { error, fail, redirect } from '@sveltejs/kit';
+import { containsEmailAddress, displayNameEmailErrorMessage } from '$lib/auth/email.js';
 import {
 	isValidUsername,
 	normalizeUsername,
@@ -184,6 +185,13 @@ export const actions = {
 
 		if (!displayName) {
 			return fail(400, { error: 'Name is required.', displayName, username });
+		}
+		if (containsEmailAddress(displayName)) {
+			return fail(400, {
+				error: displayNameEmailErrorMessage(),
+				displayName,
+				username
+			});
 		}
 		if (!isValidUsername(username)) {
 			return fail(400, { error: usernameErrorMessage(), displayName, username });
