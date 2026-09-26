@@ -36,9 +36,13 @@ export const actions = {
 		const { error } = await locals.supabase.auth.signInWithPassword({ email, password });
 
 		if (error) {
+			console.error('sign in failed', error.message, error.cause ?? '');
+			const unreachable = error.message === 'fetch failed';
 			return fail(400, {
 				email,
-				error: error.message,
+				error: unreachable
+					? 'Could not reach Supabase Auth. Check PUBLIC_SUPABASE_URL and that the app can access the internet.'
+					: error.message,
 				mode: 'login'
 			});
 		}

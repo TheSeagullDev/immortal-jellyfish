@@ -25,12 +25,12 @@
 			</a>
 			<nav class="flex items-center gap-3 text-sm">
 				{#if data.user}
-					<span class="hidden sm:inline" style="color:var(--accent)">
+					<a href="/profile" class="hidden sm:inline" style="color:var(--accent)">
 						{data.user.user_metadata?.display_name ?? data.user.email}
 						{#if data.user.user_metadata?.username}
 							<span style="opacity:0.6;color:var(--text)">@{data.user.user_metadata.username}</span>
 						{/if}
-					</span>
+					</a>
 					<form method="POST" action="/logout">
 						<button
 							type="submit"
