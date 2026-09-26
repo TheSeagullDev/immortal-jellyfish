@@ -1,13 +1,46 @@
 <script>
 	let { data } = $props();
 
-	// margin-right is baked into each image (not gap) so both halves are
-	// exactly equal width and translateX(-50%) loops without a jump.
+	// Card dimensions — must match the inline styles below so CSS calc is exact.
+	const CARD_W = 192;
+	const CARD_GAP = 12;
+	const PER_CARD = CARD_W + CARD_GAP;
+	const SET_SIZE = 6;
+	const SET_W = SET_SIZE * PER_CARD; // 1224px
+
 	const rows = [
-		{ seeds: ['hw-a1','hw-a2','hw-a3','hw-a4','hw-a5','hw-a6'], dir: 'left',  speed: 18 },
-		{ seeds: ['hw-b1','hw-b2','hw-b3','hw-b4','hw-b5','hw-b6'], dir: 'right', speed: 14 },
-		{ seeds: ['hw-c1','hw-c2','hw-c3','hw-c4','hw-c5','hw-c6'], dir: 'left',  speed: 20 }
+		{
+			dir: 'left',
+			speed: 18,
+			posts: [
+				{ seed: 'mw-f1', name: 'Chicken Tikka Masala', hall: 'North Ave', rating: 4.5, user: 'gburdell3' },
+				{ seed: 'mw-f2', name: 'Beef Street Tacos',   hall: 'Brittain',   rating: 4.2, user: 'ramblinwreck' },
+				{ seed: 'mw-f3', name: 'Margherita Pizza',    hall: 'West Village', rating: 3.8, user: 'stinggt' },
+				{ seed: 'mw-f4', name: 'Poke Bowl',           hall: 'North Ave',   rating: 4.7, user: 'techie42' },
+				{ seed: 'mw-f5', name: 'Mac & Cheese',        hall: 'Brittain',   rating: 4.0, user: 'buzzy99' },
+				{ seed: 'mw-f6', name: 'Pad Thai',            hall: 'West Village', rating: 4.3, user: 'csgt01' },
+			]
+		},
+		{
+			dir: 'right',
+			speed: 14,
+			posts: [
+				{ seed: 'mw-f7',  name: 'Grilled Salmon',    hall: 'North Ave',    rating: 4.8, user: 'gabby22' },
+				{ seed: 'mw-f8',  name: 'BBQ Short Ribs',    hall: 'West Village', rating: 4.6, user: 'yellojkt' },
+				{ seed: 'mw-f9',  name: 'Veggie Stir Fry',   hall: 'Brittain',     rating: 3.5, user: 'engineerx' },
+				{ seed: 'mw-f10', name: 'Sushi Roll Set',    hall: 'Brittain',     rating: 4.9, user: 'rambler5' },
+				{ seed: 'mw-f11', name: 'Caesar Salad',      hall: 'North Ave',    rating: 3.2, user: 'csgt01' },
+				{ seed: 'mw-f12', name: 'Pasta Primavera',   hall: 'West Village', rating: 3.9, user: 'jdoe9' },
+			]
+		},
 	];
+
+	/** @param {number} r */
+	function stars(r) {
+		const full = Math.floor(r);
+		const half = r - full >= 0.5;
+		return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(5 - full - (half ? 1 : 0));
+	}
 </script>
 
 <svelte:head>
@@ -30,8 +63,8 @@
 		</p>
 	</div>
 {:else}
-	<!-- Hero — mobile-first -->
-	<div class="px-5 pb-10 pt-12 text-center sm:px-8 sm:pb-14 sm:pt-16">
+	<!-- Hero -->
+	<div class="px-5 pb-8 pt-12 text-center sm:px-8 sm:pb-12 sm:pt-16">
 		<span
 			class="inline-block rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-widest text-white"
 			style="background:var(--accent)"
@@ -66,22 +99,38 @@
 		</div>
 	</div>
 
-	<!-- Scrolling rows — each image has mr-3 so both halves are identical width -->
+	<!-- Scrolling post-card rows -->
 	<div class="flex flex-col gap-3 overflow-hidden pb-10">
 		{#each rows as row}
+			<!--
+				--set-w must equal SET_SIZE × (CARD_W + CARD_GAP) exactly.
+				Keyframes use calc(-1 * var(--set-w)) so the pixel translation
+				is always precise regardless of container size.
+			-->
 			<div
 				class="flex"
-				style="animation: scroll-{row.dir} {row.speed}s linear infinite; will-change: transform;"
+				style="--set-w:{SET_W}px; animation: scroll-{row.dir} {row.speed}s linear infinite; will-change: transform;"
 			>
-				{#each [...row.seeds, ...row.seeds] as seed}
-					<img
-						src="https://picsum.photos/seed/{seed}/320/220"
-						alt=""
-						width="320"
-						height="220"
-						class="h-36 w-56 flex-none rounded-xl object-cover mr-3 sm:h-44 sm:w-72"
-						loading="lazy"
-					/>
+				{#each [...row.posts, ...row.posts] as post}
+					<div
+						class="flex-none overflow-hidden rounded-xl border"
+						style="width:{CARD_W}px; margin-right:{CARD_GAP}px; background:var(--background); border-color:color-mix(in srgb, var(--secondary) 70%, transparent);"
+					>
+						<img
+							src="https://picsum.photos/seed/{post.seed}/{CARD_W}/140"
+							alt=""
+							width={CARD_W}
+							height="140"
+							class="block w-full object-cover"
+							style="height:140px"
+							loading="eager"
+						/>
+						<div class="p-2.5">
+							<p class="truncate text-sm font-semibold leading-tight" style="color:var(--text)">{post.name}</p>
+							<p class="mt-0.5 truncate text-xs opacity-55" style="color:var(--text)">{post.hall} · @{post.user}</p>
+							<p class="mt-1 text-xs font-medium" style="color:var(--accent)">{post.rating} / 5</p>
+						</div>
+					</div>
 				{/each}
 			</div>
 		{/each}
