@@ -32,32 +32,36 @@
 	const CARD_W = 192;
 	const CARD_GAP = 12;
 	const PER_CARD = CARD_W + CARD_GAP;
-	const SET_SIZE = 6;
-	const SET_W = SET_SIZE * PER_CARD; // 1224px
+	const SET_SIZE = 8;
+	const SET_W = SET_SIZE * PER_CARD; // 1632px
 
 	const rows = [
 		{
 			dir: 'left',
-			speed: 18,
+			speed: 22,
 			posts: [
-				{ seed: 'mw-f1', name: 'Chicken Tikka Masala', hall: 'North Ave', rating: 4.5, user: 'gburdell3' },
-				{ seed: 'mw-f2', name: 'Beef Street Tacos',   hall: 'Brittain',   rating: 4.2, user: 'ramblinwreck' },
-				{ seed: 'mw-f3', name: 'Margherita Pizza',    hall: 'West Village', rating: 3.8, user: 'stinggt' },
-				{ seed: 'mw-f4', name: 'Poke Bowl',           hall: 'North Ave',   rating: 4.7, user: 'techie42' },
-				{ seed: 'mw-f5', name: 'Mac & Cheese',        hall: 'Brittain',   rating: 4.0, user: 'buzzy99' },
-				{ seed: 'mw-f6', name: 'Pad Thai',            hall: 'West Village', rating: 4.3, user: 'csgt01' },
+				{ src: '/demo/carousel/brittain-chicken-pita.jpeg', name: 'Chicken Pita Plate', hall: 'Brittain', rating: 4.4, user: 'gburdell3' },
+				{ src: '/demo/carousel/brittain-lo-mein.jpeg', name: 'Lo Mein & Salisbury', hall: 'Brittain', rating: 4.1, user: 'ramblinwreck' },
+				{ src: '/demo/carousel/brittain-tofu-pork.jpeg', name: 'Tofu & Pork Belly', hall: 'Brittain', rating: 3.9, user: 'stinggt' },
+				{ src: '/demo/carousel/brittain-chicken-green-beans.jpeg', name: 'Chicken, Pork & Pita', hall: 'Brittain', rating: 4.3, user: 'techie42' },
+				{ src: '/demo/carousel/brittain-pita-fruit.jpeg', name: 'Pita, Tofu & Green Beans', hall: 'Brittain', rating: 4.0, user: 'buzzy99' },
+				{ src: '/demo/carousel/brittain-fried-rice.jpeg', name: 'Fried Rice Bowl', hall: 'Brittain', rating: 4.2, user: 'csgt01' },
+				{ src: '/demo/carousel/brittain-rice-broccoli.jpeg', name: 'Rice Bowl & Broccoli', hall: 'Brittain', rating: 4.5, user: 'gabby22' },
+				{ src: '/demo/carousel/brittain-pulled-chicken-pita.jpeg', name: 'Pulled Chicken Pita', hall: 'Brittain', rating: 4.6, user: 'yellojkt' },
 			]
 		},
 		{
 			dir: 'right',
-			speed: 14,
+			speed: 18,
 			posts: [
-				{ seed: 'mw-f7',  name: 'Grilled Salmon',    hall: 'North Ave',    rating: 4.8, user: 'gabby22' },
-				{ seed: 'mw-f8',  name: 'BBQ Short Ribs',    hall: 'West Village', rating: 4.6, user: 'yellojkt' },
-				{ seed: 'mw-f9',  name: 'Veggie Stir Fry',   hall: 'Brittain',     rating: 3.5, user: 'engineerx' },
-				{ seed: 'mw-f10', name: 'Sushi Roll Set',    hall: 'Brittain',     rating: 4.9, user: 'rambler5' },
-				{ seed: 'mw-f11', name: 'Caesar Salad',      hall: 'North Ave',    rating: 3.2, user: 'csgt01' },
-				{ seed: 'mw-f12', name: 'Pasta Primavera',   hall: 'West Village', rating: 3.9, user: 'jdoe9' },
+				{ src: '/demo/carousel/north-ave-dessert-pizza.jpeg', name: 'PB&J Dessert Pizza', hall: 'North Ave', rating: 4.7, user: 'engineerx' },
+				{ src: '/demo/carousel/north-ave-chicken-cauliflower.jpeg', name: 'Chicken & Cauliflower', hall: 'North Ave', rating: 4.3, user: 'rambler5' },
+				{ src: '/demo/carousel/north-ave-chicken-pita.jpeg', name: 'Chicken Pita Plate', hall: 'North Ave', rating: 4.4, user: 'csgt01' },
+				{ src: '/demo/carousel/north-ave-breakfast-plate.jpeg', name: 'Breakfast Plate', hall: 'North Ave', rating: 4.1, user: 'jdoe9' },
+				{ src: '/demo/carousel/north-ave-roast-chicken.jpeg', name: 'Roast Chicken Plate', hall: 'North Ave', rating: 4.0, user: 'gburdell3' },
+				{ src: '/demo/carousel/north-ave-oreo-donut.jpeg', name: 'Cookies & Cream Donut', hall: 'North Ave', rating: 4.8, user: 'techie42' },
+				{ src: '/demo/carousel/west-village-tofu-pork.jpeg', name: 'Tofu & Pork Bowl', hall: 'West Village', rating: 4.2, user: 'stinggt' },
+				{ src: '/demo/carousel/west-village-fruit-cup.jpeg', name: 'Fruit Cup', hall: 'West Village', rating: 4.5, user: 'gabby22' },
 			]
 		},
 	];
@@ -251,8 +255,8 @@
 					>
 						<div class="photo-frame">
 							<img
-								src="https://picsum.photos/seed/{post.seed}/192/256"
-								alt=""
+								src={post.src}
+								alt={post.name}
 								width="192"
 								height="256"
 								loading="eager"
