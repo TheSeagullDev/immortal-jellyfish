@@ -1,10 +1,13 @@
--- Profiles for display names collected at signup.
+-- Profiles for name + username collected at signup.
 
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   display_name text not null,
   username text not null unique,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  constraint profiles_username_format check (
+    username ~ '^[a-z0-9]([a-z0-9._]{1,22}[a-z0-9])?$'
+  )
 );
 
 alter table public.profiles enable row level security;
@@ -28,22 +31,28 @@ set search_path = ''
 as $$
 declare
   meta_name text;
+  meta_username text;
   fallback_name text;
-  username_base text;
+  username_value text;
 begin
   meta_name := nullif(trim(coalesce(new.raw_user_meta_data->>'display_name', '')), '');
+  meta_username := nullif(lower(trim(coalesce(new.raw_user_meta_data->>'username', ''))), '');
   fallback_name := split_part(coalesce(new.email, 'user'), '@', 1);
-  username_base := lower(regexp_replace(fallback_name, '[^a-zA-Z0-9._-]', '', 'g'));
 
-  if username_base = '' then
-    username_base := 'user';
+  username_value := coalesce(
+    meta_username,
+    lower(regexp_replace(fallback_name, '[^a-zA-Z0-9._]', '', 'g'))
+  );
+
+  if username_value = '' or username_value !~ '^[a-z0-9]([a-z0-9._]{1,22}[a-z0-9])?$' then
+    username_value := 'user' || substr(replace(new.id::text, '-', ''), 1, 8);
   end if;
 
   insert into public.profiles (id, display_name, username)
   values (
     new.id,
     coalesce(meta_name, fallback_name),
-    username_base
+    username_value
   );
 
   return new;

@@ -13,7 +13,11 @@
 			: ''}
 	</h1>
 	<p class="mt-2 text-stone-600">
-		Signed in as <span class="font-medium text-stone-900">{data.user.email}</span>.
+		{#if data.user.user_metadata?.username}
+			<span class="font-medium text-stone-900">@{data.user.user_metadata.username}</span>
+			·
+		{/if}
+		<span class="font-medium text-stone-900">{data.user.email}</span>
 	</p>
 {:else}
 	<h1 class="text-2xl font-semibold tracking-tight">Dining Hall</h1>

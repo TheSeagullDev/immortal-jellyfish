@@ -33,4 +33,4 @@ Includes:
 ## 4. App checks
 
 `src/lib/auth/email.js` + the `/login` form actions reject non-GT emails before calling Auth.
-Signup also collects a display name and stores it in `user_metadata.display_name` (and `profiles` via the trigger).
+Signup also collects **name** + **username**, stored in `user_metadata` and `public.profiles`.

@@ -49,6 +49,22 @@
 					class="block w-full rounded-md border-stone-300 shadow-sm focus:border-stone-500 focus:ring-stone-500"
 				/>
 			</label>
+
+			<label class="block text-sm">
+				<span class="mb-1 block font-medium text-stone-700">Username</span>
+				<input
+					type="text"
+					name="username"
+					value={form?.username ?? ''}
+					required
+					minlength="3"
+					maxlength="24"
+					autocomplete="username"
+					pattern="[a-zA-Z0-9]([a-zA-Z0-9._]{1,22}[a-zA-Z0-9])?"
+					placeholder="gburdell"
+					class="block w-full rounded-md border-stone-300 shadow-sm focus:border-stone-500 focus:ring-stone-500"
+				/>
+			</label>
 		{/if}
 
 		<label class="block text-sm">
