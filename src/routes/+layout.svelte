@@ -7,22 +7,25 @@
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
-<div class="min-h-dvh bg-stone-50 text-stone-900">
-	<header class="border-b border-stone-200 bg-white">
+<div class="min-h-dvh" style="background:var(--background);color:var(--text)">
+	<header class="border-b" style="border-color:var(--secondary);background:var(--background)">
 		<div class="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-3">
-			<a href="/" class="font-semibold tracking-tight">Dining Hall</a>
+			<a href="/" class="text-lg font-bold tracking-tight" style="color:var(--primary)">
+				MealWise
+			</a>
 			<nav class="flex items-center gap-3 text-sm">
 				{#if data.user}
-					<span class="hidden text-stone-500 sm:inline">
+					<span class="hidden sm:inline" style="color:var(--accent)">
 						{data.user.user_metadata?.display_name ?? data.user.email}
 						{#if data.user.user_metadata?.username}
-							<span class="text-stone-400">@{data.user.user_metadata.username}</span>
+							<span style="color:var(--secondary)">@{data.user.user_metadata.username}</span>
 						{/if}
 					</span>
 					<form method="POST" action="/logout">
 						<button
 							type="submit"
-							class="rounded-md border border-stone-300 px-3 py-1.5 hover:bg-stone-100"
+							class="rounded-md border px-3 py-1.5 text-sm transition-opacity hover:opacity-75"
+							style="border-color:var(--secondary);color:var(--text)"
 						>
 							Sign out
 						</button>
@@ -30,7 +33,8 @@
 				{:else}
 					<a
 						href="/login"
-						class="rounded-md bg-stone-900 px-3 py-1.5 text-white hover:bg-stone-800"
+						class="rounded-md px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
+						style="background:var(--primary)"
 					>
 						Sign in
 					</a>
