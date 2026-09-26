@@ -8,15 +8,15 @@
 
 <section class="px-5 py-8 sm:px-8">
 	<div class="mx-auto max-w-md">
-		<h1 class="text-2xl font-bold tracking-tight" style="color:var(--primary)">Sign in</h1>
-		<p class="mt-2 text-sm" style="color:var(--accent)">
+		<h1 class="text-2xl font-bold tracking-tight" style="color:var(--text)">Sign in</h1>
+		<p class="mt-2 text-sm" style="color:var(--text-muted)">
 			Georgia Tech emails only (<span class="font-medium">@gatech.edu</span>).
 		</p>
 
 		{#if data.registered}
 			<p
-				class="mt-4 rounded-md border px-3 py-2 text-sm"
-				style="border-color:var(--primary);background:color-mix(in srgb,var(--primary) 10%,transparent);color:var(--primary)"
+				class="mt-4 rounded-md px-3 py-2 text-sm"
+				style="background:var(--surface);color:var(--text)"
 				role="status"
 			>
 				Check your inbox to confirm your email, then sign in.
@@ -25,7 +25,8 @@
 
 		{#if form?.error}
 			<p
-				class="mt-4 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700"
+				class="mt-4 rounded-md px-3 py-2 text-sm"
+				style="background:color-mix(in srgb,#b42318 10%,var(--background));color:#8a1f16"
 				role="alert"
 			>
 				{form.error}
@@ -42,8 +43,7 @@
 					required
 					autocomplete="email"
 					placeholder="gburdell3@gatech.edu"
-					class="block w-full rounded-md shadow-sm"
-					style="border-color:var(--secondary)"
+					class="block w-full rounded-md"
 				/>
 			</label>
 
@@ -55,25 +55,22 @@
 					required
 					minlength="6"
 					autocomplete="current-password"
-					class="block w-full rounded-md shadow-sm"
-					style="border-color:var(--secondary)"
+					class="block w-full rounded-md"
 				/>
 			</label>
 
 			<button
 				type="submit"
-				class="w-full rounded-md px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-				style="background:var(--primary)"
+				class="w-full rounded-md px-4 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90"
+				style="background:var(--primary);color:var(--on-primary)"
 			>
 				Sign in
 			</button>
 		</form>
 
-		<p class="mt-6 text-center text-sm" style="color:var(--accent)">
+		<p class="mt-6 text-center text-sm" style="color:var(--text-muted)">
 			No account?
-			<a href="/signup" class="font-semibold underline underline-offset-2" style="color:var(--primary)">
-				Sign up
-			</a>
+			<a href="/signup" class="font-semibold" style="color:var(--primary)">Sign up</a>
 		</p>
 	</div>
 </section>
