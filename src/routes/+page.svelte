@@ -1,5 +1,5 @@
 <script>
-	let { data } = $props();
+	let { data, form } = $props();
 
 	// Card dimensions — must match the inline styles below so CSS calc is exact.
 	const CARD_W = 192;
@@ -51,19 +51,108 @@
 </svelte:head>
 
 {#if data.user}
-	<div class="mx-auto max-w-3xl px-4 py-8">
-		<h1 class="text-2xl font-bold tracking-tight" style="color:var(--primary)">
-			Hey{data.user.user_metadata?.display_name
-				? `, ${data.user.user_metadata.display_name}`
-				: ''}
-		</h1>
-		<p class="mt-2 text-sm" style="color:var(--accent)">
-			{#if data.user.user_metadata?.username}
-				<span class="font-medium" style="color:var(--text)">@{data.user.user_metadata.username}</span>
-				·
+	<div class="mx-auto max-w-3xl px-4 py-6">
+		<h1 class="text-2xl font-bold tracking-tight" style="color:var(--primary)">Feed</h1>
+
+		<form
+			method="POST"
+			action="?/create"
+			enctype="multipart/form-data"
+			class="mt-4 space-y-3 rounded-xl border p-4"
+			style="border-color:var(--secondary);background:color-mix(in srgb,var(--background) 80%,transparent)"
+		>
+			<p class="text-sm font-semibold">New post</p>
+
+			{#if form?.error}
+				<p class="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+					{form.error}
+				</p>
 			{/if}
-			{data.user.email}
-		</p>
+
+			<label class="block text-sm">
+				<span class="mb-1 block font-medium">Photo</span>
+				<input type="file" name="image" accept="image/*" capture="environment" required class="block w-full text-sm" />
+			</label>
+
+			<label class="block text-sm">
+				<span class="mb-1 block font-medium">Caption</span>
+				<input
+					type="text"
+					name="caption"
+					value={form?.caption ?? ''}
+					required
+					maxlength="200"
+					placeholder="What's on the tray?"
+					class="block w-full rounded-md text-sm"
+					style="border-color:var(--secondary)"
+				/>
+			</label>
+
+			<div class="grid grid-cols-2 gap-3">
+				<label class="block text-sm">
+					<span class="mb-1 block font-medium">Hall</span>
+					<select
+						name="dining_hall_id"
+						required
+						class="block w-full rounded-md text-sm"
+						style="border-color:var(--secondary)"
+					>
+						<option value="">Select</option>
+						{#each data.halls ?? [] as hall}
+							<option value={hall.id} selected={form?.hallId === hall.id}>{hall.name}</option>
+						{/each}
+					</select>
+				</label>
+
+				<fieldset class="text-sm">
+					<legend class="mb-1 font-medium">Rating</legend>
+					<div class="flex flex-wrap gap-2">
+						{#each [1, 2, 3, 4, 5] as n}
+							<label class="flex items-center gap-1">
+								<input type="radio" name="rating" value={n} required checked={Number(form?.rating) === n} />
+								{n}
+							</label>
+						{/each}
+					</div>
+				</fieldset>
+			</div>
+
+			<button
+				type="submit"
+				class="w-full rounded-md px-4 py-2.5 text-sm font-semibold text-white"
+				style="background:var(--accent)"
+			>
+				Post
+			</button>
+		</form>
+
+		{#if data.feedError}
+			<p class="mt-4 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+				{data.feedError}
+			</p>
+		{:else if !data.posts?.length}
+			<p class="mt-8 text-center text-sm opacity-50">No posts yet. Be the first.</p>
+		{:else}
+			<div class="mt-6 space-y-4">
+				{#each data.posts as post}
+					<article
+						class="overflow-hidden rounded-xl border"
+						style="background:var(--background);border-color:color-mix(in srgb,var(--secondary) 70%,transparent)"
+					>
+						{#if post.imageUrl}
+							<img src={post.imageUrl} alt="" class="h-56 w-full object-cover" />
+						{/if}
+						<div class="space-y-1 p-3">
+							<p class="font-semibold leading-tight">{post.caption}</p>
+							<p class="text-sm opacity-60">
+								{post.hallName} · @{post.username}
+							</p>
+							<p class="text-sm font-medium" style="color:var(--accent)">{post.rating} / 5</p>
+						</div>
+					</article>
+				{/each}
+			</div>
+		{/if}
 	</div>
 {:else}
 	<!-- Hero -->
