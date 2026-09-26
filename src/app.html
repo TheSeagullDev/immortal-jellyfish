@@ -4,6 +4,16 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>MealWise</title>
+		<script>
+			try {
+				var follow = localStorage.getItem('mw-theme-system');
+				var dark =
+					follow === '0'
+						? localStorage.getItem('mw-theme') === 'dark'
+						: window.matchMedia('(prefers-color-scheme: dark)').matches;
+				if (dark) document.documentElement.classList.add('dark');
+			} catch (e) {}
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

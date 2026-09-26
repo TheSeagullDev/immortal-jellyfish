@@ -1,11 +1,18 @@
 <script>
 	import { enhance } from '$app/forms';
+	import { onMount } from 'svelte';
+	import { applyTheme, readThemeMode, resolvedTheme, setUseSystemTheme } from '$lib/theme.js';
 
 	let { data, form } = $props();
 
 	let editingName = $state(false);
 	let editingUsername = $state(false);
 	let editingPassword = $state(false);
+	/** @type {'light' | 'dark'} */
+	let theme = $state('light');
+	let useSystem = $state(true);
+	/** @type {'light' | 'dark' | 'system'} */
+	let themeChoice = $state('system');
 
 	const profileHref = $derived(data.username ? `/u/${data.username}` : '/profile');
 	const showNotice = $derived(
@@ -20,6 +27,30 @@
 		if (form?.updated === 'username') editingUsername = false;
 		if (form?.updated === 'password') editingPassword = false;
 	});
+
+	onMount(() => {
+		useSystem = readThemeMode() === 'system';
+		theme = resolvedTheme();
+		themeChoice = useSystem ? 'system' : theme;
+	});
+
+	/**
+	 * @param {Event} event
+	 */
+	function onThemeChoice(event) {
+		const value = /** @type {HTMLSelectElement} */ (event.currentTarget).value;
+		if (value === 'system') {
+			useSystem = true;
+			themeChoice = 'system';
+			setUseSystemTheme(true);
+			theme = resolvedTheme();
+			return;
+		}
+		useSystem = false;
+		theme = value === 'dark' ? 'dark' : 'light';
+		themeChoice = theme;
+		applyTheme(theme);
+	}
 </script>
 
 <svelte:head>
@@ -281,5 +312,19 @@
 		<a href={profileHref} class="inline-block text-sm font-medium" style="color:var(--primary)">
 			View Profile
 		</a>
+	</div>
+
+	<div class="mt-4 rounded-xl p-4" style="background:var(--surface)">
+		<p class="text-sm font-medium" style="color:var(--text)">Light/Dark Mode</p>
+		<select
+			class="edit-field mt-2 block w-full max-w-sm rounded-md text-sm font-normal"
+			aria-label="Light/Dark Mode"
+			value={themeChoice}
+			onchange={onThemeChoice}
+		>
+			<option value="light">Light</option>
+			<option value="dark">Dark</option>
+			<option value="system">System Default</option>
+		</select>
 	</div>
 </section>
