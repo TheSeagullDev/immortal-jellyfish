@@ -18,5 +18,5 @@ export const load = async ({ data, depends, fetch }) => {
 
 	const { session, user } = data;
 
-	return { supabase, session, user };
+	return { ...data, supabase, session, user };
 };

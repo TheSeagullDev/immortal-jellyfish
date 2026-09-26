@@ -1,6 +1,7 @@
 <script>
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
+	import ComposerFab from '$lib/ComposerFab.svelte';
 
 	let { data, children } = $props();
 </script>
@@ -59,3 +60,4 @@
 		{@render children()}
 	</main>
 </div>
+<ComposerFab halls={data.halls ?? []} signedIn={Boolean(data.user || data.session)} />
