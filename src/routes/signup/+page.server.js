@@ -1,10 +1,11 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { gatechEmailErrorMessage, isGatechEmail, normalizeEmail } from '$lib/auth/email.js';
 import {
-	isValidUsername,
-	normalizeUsername,
-	usernameErrorMessage
-} from '$lib/auth/username.js';
+	containsEmailAddress,
+	gatechEmailErrorMessage,
+	isGatechEmail,
+	normalizeEmail
+} from '$lib/auth/email.js';
+import { isValidUsername, normalizeUsername, usernameErrorMessage } from '$lib/auth/username.js';
 
 /** @type {import('./$types').PageServerLoad} */
 export const load = async ({ locals }) => {
@@ -27,6 +28,15 @@ export const actions = {
 
 		if (!name) {
 			return fail(400, { name, username, email, error: 'Name is required.' });
+		}
+
+		if (containsEmailAddress(name)) {
+			return fail(400, {
+				name,
+				username,
+				email,
+				error: "Name can't include an email ending like @gmail.com or @gatech.edu."
+			});
 		}
 
 		if (!isValidUsername(username)) {

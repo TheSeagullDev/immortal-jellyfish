@@ -1,6 +1,7 @@
 <script>
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
+	import AccountMenu from '$lib/AccountMenu.svelte';
 
 	let { data, children } = $props();
 </script>
@@ -14,48 +15,35 @@
 		color: var(--text);
 	"
 >
-	<header class="backdrop-blur-sm" style="background: color-mix(in srgb, var(--background) 88%, transparent);">
-		<div class="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-4">
-			<a href="/" class="text-lg font-bold tracking-tight" style="color:var(--text)">
-				Meal<span style="color:var(--primary)">Wise</span>
-			</a>
-			<nav class="flex items-center gap-3 text-sm">
-				{#if data.user}
-					<a
-						href={data.user.user_metadata?.username
-							? `/u/${data.user.user_metadata.username}`
-							: '/profile'}
-						class="hidden sm:inline"
-						style="color:var(--text-muted)"
-					>
-						{data.user.user_metadata?.display_name ?? data.user.email}
-						{#if data.user.user_metadata?.username}
-							<span>@{data.user.user_metadata.username}</span>
-						{/if}
+	<header
+		class="backdrop-blur-sm"
+		style="background: color-mix(in srgb, var(--background) 88%, transparent);"
+	>
+		<div class="app-col">
+			<div class="flex items-center justify-between gap-4 py-4">
+				<div class="flex items-center gap-8">
+					<a href="/" class="text-xl font-bold tracking-tight" style="color:var(--text)">
+						Meal<span style="color:var(--primary)">Wise</span>
 					</a>
-					<form method="POST" action="/logout">
-						<button
-							type="submit"
-							class="rounded-md px-3 py-1.5 text-sm transition-opacity hover:opacity-75"
-							style="background:var(--surface);color:var(--text)"
+				</div>
+				<nav class="flex items-center gap-3 text-sm">
+					{#if data.user}
+						<AccountMenu user={data.user} />
+					{:else}
+						<a
+							href="/login"
+							class="rounded-md px-3 py-1.5 text-sm font-medium transition-opacity hover:opacity-90"
+							style="background:var(--primary);color:var(--on-primary)"
 						>
-							Sign out
-						</button>
-					</form>
-				{:else}
-					<a
-						href="/login"
-						class="rounded-md px-3 py-1.5 text-sm font-medium transition-opacity hover:opacity-90"
-						style="background:var(--primary);color:var(--on-primary)"
-					>
-						Sign in
-					</a>
-				{/if}
-			</nav>
+							Sign in
+						</a>
+					{/if}
+				</nav>
+			</div>
 		</div>
 	</header>
 
-	<main>
+	<main class={data.user ? 'app-col py-6' : undefined}>
 		{@render children()}
 	</main>
 </div>

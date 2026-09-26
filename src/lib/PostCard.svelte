@@ -7,10 +7,10 @@
 	let { post, likeEnhance = undefined, showHeart = true } = $props();
 </script>
 
-<article class="overflow-hidden rounded-xl" style="background:var(--surface)">
+<article class="post-card overflow-hidden rounded-xl" style="background:var(--surface)">
 	<div class="flex items-center justify-between gap-3 px-3 pt-3 pb-2">
 		{#if post.username}
-			<a href="/u/{post.username}" class="flex min-w-0 items-center gap-2">
+			<a href="/u/{post.username}" class="flex min-w-0 flex-1 items-center gap-2">
 				<PersonAvatar src={post.avatarUrl} size="sm" />
 				<p class="min-w-0 truncate text-base">
 					<span class="font-medium">@{post.username}</span>
@@ -18,14 +18,16 @@
 				</p>
 			</a>
 		{:else}
-			<div class="flex min-w-0 items-center gap-2">
+			<div class="flex min-w-0 flex-1 items-center gap-2">
 				<PersonAvatar src={post.avatarUrl} size="sm" />
 				<p class="min-w-0 truncate text-base">
 					<span style="color:var(--text-muted)">{post.hallName}</span>
 				</p>
 			</div>
 		{/if}
-		<StarRating value={post.rating} />
+		<div class="shrink-0">
+			<StarRating value={post.rating} />
+		</div>
 	</div>
 	{#if post.imageUrl}
 		<div class="photo-frame">
@@ -45,8 +47,9 @@
 					<input type="hidden" name="post_id" value={post.id} />
 					<button
 						type="submit"
-						class="inline-flex items-center gap-1.5 text-base"
-						style="color: {post.liked ? 'var(--primary)' : 'var(--text-muted)'}"
+						class="like-heart inline-flex items-center gap-1.5 text-base {post.liked
+							? 'is-liked'
+							: ''}"
 						aria-label={post.liked ? 'Unlike' : 'Like'}
 					>
 						<svg

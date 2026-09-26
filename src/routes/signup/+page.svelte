@@ -73,6 +73,7 @@
 					required
 					minlength="6"
 					autocomplete="new-password"
+					placeholder="********"
 					class="block w-full rounded-md"
 				/>
 			</label>

@@ -12,6 +12,7 @@
     --primary: #3d7eb8;
     --on-primary: #f7f9fb;
     --star: #8a9ea6;
+    --star-empty: #6d7c88;
   }
   .dark {
     --text: #e4eaf0;
@@ -22,6 +23,11 @@
     --primary: #5a9fd0;
     --on-primary: #f7f9fb;
     --star: #8a9ea6;
+    --star-empty: #8a98a4;
+  }
+
+  html {
+    scrollbar-gutter: stable;
   }
 
   body {
@@ -46,16 +52,76 @@
   }
 }
 
-/* iPhone stills are 4:3; phone-held photos are 3:4. contain = no crop. */
+.app-col {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 48rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+.edit-field {
+  background-color: #fff;
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 12%, transparent);
+}
+.edit-field:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+/* Hand pointer on links and clickable controls (overrides UA / forms default arrow). */
+a[href],
+button:not(:disabled),
+summary,
+select:not(:disabled),
+label[for],
+[role='button']:not([aria-disabled='true']),
+input[type='checkbox']:not(:disabled),
+input[type='radio']:not(:disabled),
+input[type='file']:not(:disabled),
+input[type='submit']:not(:disabled),
+input[type='reset']:not(:disabled),
+input[type='image']:not(:disabled),
+input[type='button']:not(:disabled) {
+  cursor: pointer;
+}
+
+/* iPhone stills are 4:3; phone-held photos are 3:4. cover keeps ratio (no stretch). */
 .photo-frame {
   aspect-ratio: 3 / 4;
+  width: 100%;
   background: var(--surface);
+  overflow: hidden;
 }
 .photo-frame img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
+}
+@media (min-width: 768px) {
+  .post-card {
+    width: 24rem;
+    max-width: 100%;
+    margin-inline: auto;
+  }
+}
+
+.like-heart {
+  color: var(--text-muted);
+}
+.like-heart.is-liked {
+  color: var(--primary);
+}
+@media (hover: hover) {
+  .like-heart:not(.is-liked):hover {
+    color: var(--primary);
+  }
+  .like-heart:not(.is-liked):hover svg {
+    fill: currentColor;
+  }
 }
 
 .avatar-edit {
