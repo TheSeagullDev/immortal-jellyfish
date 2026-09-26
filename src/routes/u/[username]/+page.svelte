@@ -52,7 +52,7 @@
 
 <svelte:window onkeydown={onKeydown} />
 
-<div class="mx-auto max-w-3xl px-4 py-6 pb-24">
+<div class="pb-24">
 	<p class="text-sm">
 		<a href="/" class="hover:opacity-80" style="color:var(--text-muted)">← Feed</a>
 	</p>
@@ -150,37 +150,35 @@
 				</div>
 			</form>
 		{:else}
-			<div class="flex items-start gap-2">
-				<div>
-					<h1 class="text-2xl font-bold tracking-tight" style="color:var(--text)">
-						{data.profile.displayName}
-					</h1>
-					<p class="mt-1 text-base" style="color:var(--text-muted)">
-						@{data.profile.username}
-						{#if joinedLabel}
-							<span> · Joined {joinedLabel}</span>
-						{/if}
-					</p>
-				</div>
-				{#if data.isOwn}
-					<button
-						type="button"
-						class="mt-1 rounded-md p-1.5"
-						style="color:var(--text-muted)"
-						aria-label="Edit name and username"
-						onclick={() => (editingIdentity = true)}
-					>
-						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-							<path
-								d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"
-								stroke="currentColor"
-								stroke-width="1.7"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							/>
-						</svg>
-					</button>
-				{/if}
+			<div>
+				<h1 class="flex items-center gap-1 text-2xl font-bold tracking-tight" style="color:var(--text)">
+					<span>{data.profile.displayName}</span>
+					{#if data.isOwn}
+						<button
+							type="button"
+							class="inline-flex shrink-0 rounded-md p-1"
+							style="color:var(--text-muted)"
+							aria-label="Edit name and username"
+							onclick={() => (editingIdentity = true)}
+						>
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+								<path
+									d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"
+									stroke="currentColor"
+									stroke-width="1.7"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+								/>
+							</svg>
+						</button>
+					{/if}
+				</h1>
+				<p class="mt-1 text-base" style="color:var(--text-muted)">
+					@{data.profile.username}
+					{#if joinedLabel}
+						<span> · Joined {joinedLabel}</span>
+					{/if}
+				</p>
 			</div>
 		{/if}
 

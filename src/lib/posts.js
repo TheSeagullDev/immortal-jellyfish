@@ -25,6 +25,7 @@ export async function resolveImageUrl(supabase, path) {
 
 export const postsSelect = `
 	id,
+	author_id,
 	caption,
 	rating,
 	image_path,
@@ -80,6 +81,7 @@ export async function mapPosts(supabase, rows, userId = null) {
 			const likes = Array.isArray(row.likes) ? row.likes : [];
 			return {
 				id: row.id,
+				authorId: row.author_id ?? '',
 				caption: row.caption ?? '',
 				rating: row.rating ?? 0,
 				imageUrl: await resolveImageUrl(supabase, String(row.image_path ?? '')),

@@ -55,6 +55,7 @@
 					required
 					minlength="6"
 					autocomplete="current-password"
+					placeholder="********"
 					class="block w-full rounded-md"
 				/>
 			</label>
