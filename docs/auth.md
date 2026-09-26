@@ -7,7 +7,7 @@ Email + password auth via Supabase. Only `@gatech.edu` addresses can sign up or 
 Copy `.env.example` → `.env` and fill in:
 
 - `PUBLIC_SUPABASE_URL`
-- `PUBLIC_SUPABASE_ANON_KEY` (anon / publishable key)
+- `PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 
 ## 2. Supabase Auth settings
 
