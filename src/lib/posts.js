@@ -73,7 +73,7 @@ export function formatRelativeTime(iso) {
  */
 export async function mapPosts(supabase, rows, userId = null) {
 	const list = Array.isArray(rows) ? rows : [];
-	return Promise.all(
+	const mapped = await Promise.all(
 		list.map(async (row) => {
 			const hall = row.dining_halls && typeof row.dining_halls === 'object' ? row.dining_halls : {};
 			const profile = row.profiles && typeof row.profiles === 'object' ? row.profiles : {};
@@ -88,9 +88,33 @@ export async function mapPosts(supabase, rows, userId = null) {
 				hallName: hall.name ?? '',
 				username: profile.username ?? '',
 				authorName: profile.display_name ?? '',
+				avatarUrl: '',
 				likeCount: likes.length,
 				liked: userId ? likes.some((like) => like.user_id === userId) : false
 			};
 		})
 	);
+
+	const usernames = [...new Set(mapped.map((post) => post.username).filter(Boolean))];
+	if (!usernames.length) return mapped;
+
+	const { data: avatars, error } = await supabase
+		.from('profiles')
+		.select('username, avatar_path')
+		.in('username', usernames);
+
+	if (error || !avatars) {
+		return mapped;
+	}
+
+	/** @type {Record<string, string>} */
+	const urls = {};
+	for (const row of avatars) {
+		urls[row.username] = await resolveImageUrl(supabase, String(row.avatar_path ?? ''));
+	}
+
+	return mapped.map((post) => ({
+		...post,
+		avatarUrl: urls[post.username] || ''
+	}));
 }

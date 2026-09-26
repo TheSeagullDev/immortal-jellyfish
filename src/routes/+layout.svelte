@@ -21,7 +21,13 @@
 			</a>
 			<nav class="flex items-center gap-3 text-sm">
 				{#if data.user}
-					<a href="/profile" class="hidden sm:inline" style="color:var(--text-muted)">
+					<a
+						href={data.user.user_metadata?.username
+							? `/u/${data.user.user_metadata.username}`
+							: '/profile'}
+						class="hidden sm:inline"
+						style="color:var(--text-muted)"
+					>
 						{data.user.user_metadata?.display_name ?? data.user.email}
 						{#if data.user.user_metadata?.username}
 							<span>@{data.user.user_metadata.username}</span>
