@@ -2,6 +2,7 @@ import { fail } from '@sveltejs/kit';
 import { classifyPlate } from '$lib/classify-food.js';
 import { fetchTodayFoods, menuWhen } from '$lib/nutrislice.js';
 import { mapPosts, postsSelect } from '$lib/posts.js';
+import { handleReportAction } from '$lib/report.js';
 
 /** @type {import('./$types').PageServerLoad} */
 export const load = async ({ locals }) => {
@@ -82,13 +83,15 @@ export const actions = {
 			});
 
 			if (!classified.skipped && !classified.isFood) {
+				console.log('[classify] rejected', classified.rejectReason);
 				return fail(400, {
 					caption,
 					hallId,
 					rating,
 					menuDate,
 					menuTime,
-					error: classified.rejectReason || 'That photo does not look like dining-hall food.'
+					error: "That doesn't look like a dining-hall meal. Post a photo of your plate.",
+					reportKind: 'classification'
 				});
 			}
 
@@ -130,6 +133,8 @@ export const actions = {
 
 		return { posted: true };
 	},
+
+	report: handleReportAction,
 
 	like: async ({ request, locals }) => {
 		const { user } = await locals.safeGetSession();

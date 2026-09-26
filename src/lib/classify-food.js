@@ -50,6 +50,7 @@ export async function classifyPlate({ bytes, mimeType, menu }) {
 
 Decide if the image is primarily a meal / plate / food / drink from a dining hall.
 Reject (is_food=false) for: selfies, memes, screenshots, people, rooms with no food, spam, empty tables, IDs, or sexual/violent content.
+reject_reason is an internal short label for logs (e.g. selfie, screenshot). Do not write it as something to show a user.
 
 If it is food, pick 0–6 items from TODAY'S MENU that are actually visible. Use only ids from the list. Mixed trays are normal (protein + sides + fruit). If you cannot match a menu item, return an empty matches array — still is_food=true.
 
