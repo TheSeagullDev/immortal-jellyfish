@@ -9,7 +9,8 @@
 	<title>{mode === 'signup' ? 'Create account' : 'Sign in'} · MealWise</title>
 </svelte:head>
 
-<section class="mx-auto max-w-md">
+<section class="mx-auto max-w-3xl px-4 py-8">
+<div class="mx-auto max-w-md">
 	<h1 class="text-2xl font-bold tracking-tight" style="color:var(--primary)">
 		{mode === 'signup' ? 'Create account' : 'Sign in'}
 	</h1>
@@ -128,4 +129,5 @@
 			</button>
 		{/if}
 	</p>
+</div>
 </section>
