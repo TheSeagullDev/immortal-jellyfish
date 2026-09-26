@@ -8,8 +8,15 @@
 
 	let localPreview = $state('');
 	let editingIdentity = $state(false);
-	/** @type {any | null} */
-	let openedPost = $state(null);
+	/** @type {string | null} */
+	let openedId = $state(null);
+	let dragX = $state(0);
+	let dragging = $state(false);
+
+	let swipeStartX = 0;
+	let swipeStartY = 0;
+	/** @type {'x' | 'y' | null} */
+	let swipeAxis = null;
 
 	const joinedLabel = $derived(
 		data.profile.joinedAt
@@ -22,10 +29,106 @@
 
 	const avatarSrc = $derived(localPreview || data.profile.avatarUrl || '');
 	const tabPosts = $derived(data.tab === 'liked' ? data.likedPosts : data.posts);
+	const openedIndex = $derived(
+		openedId ? tabPosts.findIndex((post) => post.id === openedId) : -1
+	);
+	const openedPost = $derived(openedIndex >= 0 ? tabPosts[openedIndex] : null);
+	const canPrev = $derived(openedIndex > 0);
+	const canNext = $derived(openedIndex >= 0 && openedIndex < tabPosts.length - 1);
 
 	$effect(() => {
 		if (form?.error && (form.displayName || form.username)) editingIdentity = true;
 	});
+
+	/**
+	 * @param {number} delta
+	 */
+	function go(delta) {
+		const next = openedIndex + delta;
+		if (next < 0 || next >= tabPosts.length) return;
+		openedId = tabPosts[next].id;
+		dragX = 0;
+	}
+
+	function closePost() {
+		openedId = null;
+		dragX = 0;
+		dragging = false;
+		swipeAxis = null;
+	}
+
+	let seenTab = data.tab;
+	$effect(() => {
+		if (data.tab === seenTab) return;
+		seenTab = data.tab;
+		closePost();
+	});
+
+	/**
+	 * @param {TouchEvent} event
+	 */
+	function onSwipeStart(event) {
+		const touch = event.changedTouches[0];
+		if (!touch) return;
+		swipeStartX = touch.clientX;
+		swipeStartY = touch.clientY;
+		dragging = true;
+		swipeAxis = null;
+		dragX = 0;
+	}
+
+	/**
+	 * @param {TouchEvent} event
+	 */
+	function onSwipeMove(event) {
+		if (!dragging) return;
+		const touch = event.changedTouches[0];
+		if (!touch) return;
+		const dx = touch.clientX - swipeStartX;
+		const dy = touch.clientY - swipeStartY;
+		if (!swipeAxis) {
+			if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+			swipeAxis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+		}
+		if (swipeAxis !== 'x') return;
+		event.preventDefault();
+		const atStart = !canPrev && dx > 0;
+		const atEnd = !canNext && dx < 0;
+		dragX = atStart || atEnd ? dx * 0.22 : dx;
+	}
+
+	function onSwipeEnd() {
+		if (!dragging) return;
+		dragging = false;
+		if (swipeAxis === 'x') {
+			if (dragX < -56) go(1);
+			else if (dragX > 56) go(-1);
+			else dragX = 0;
+		} else {
+			dragX = 0;
+		}
+		swipeAxis = null;
+	}
+
+	/**
+	 * @param {HTMLElement} node
+	 */
+	function swipeSurface(node) {
+		/** @param {TouchEvent} event */
+		const move = (event) => onSwipeMove(event);
+		node.addEventListener('touchstart', onSwipeStart, { passive: true });
+		node.addEventListener('touchmove', move, { passive: false });
+		node.addEventListener('touchend', onSwipeEnd);
+		node.addEventListener('touchcancel', onSwipeEnd);
+		return {
+			destroy() {
+				node.removeEventListener('touchstart', onSwipeStart);
+				node.removeEventListener('touchmove', move);
+				node.removeEventListener('touchend', onSwipeEnd);
+				node.removeEventListener('touchcancel', onSwipeEnd);
+			}
+		};
+	}
 
 	/**
 	 * @param {Event} event
@@ -42,7 +145,10 @@
 	 * @param {KeyboardEvent} event
 	 */
 	function onKeydown(event) {
-		if (event.key === 'Escape') openedPost = null;
+		if (!openedPost) return;
+		if (event.key === 'Escape') closePost();
+		if (event.key === 'ArrowLeft') go(-1);
+		if (event.key === 'ArrowRight') go(1);
 	}
 </script>
 
@@ -243,7 +349,7 @@
 						type="button"
 						class="block aspect-square w-full overflow-hidden"
 						style="background:var(--muted)"
-						onclick={() => (openedPost = post)}
+						onclick={() => (openedId = post.id)}
 					>
 						{#if post.imageUrl}
 							<LoadedImage src={post.imageUrl} />
@@ -262,10 +368,25 @@
 			class="absolute inset-0"
 			style="background:color-mix(in srgb, var(--text) 40%, transparent)"
 			aria-label="Close post"
-			onclick={() => (openedPost = null)}
+			onclick={closePost}
 		></button>
-		<div class="relative z-10 max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-xl">
-			<PostCard post={openedPost} showHeart={Boolean(data.user)} />
+		<div
+			class="relative z-10 w-full max-w-md"
+			style="
+				transform: translateX({dragX}px);
+				transition: {dragging ? 'none' : 'transform 180ms ease'};
+				touch-action: pan-y;
+			"
+			use:swipeSurface
+		>
+			{#if tabPosts.length > 1}
+				<p class="mb-2 text-center text-xs font-medium" style="color:var(--on-primary)">
+					{openedIndex + 1} / {tabPosts.length}
+				</p>
+			{/if}
+			<div class="max-h-[85dvh] overflow-y-auto rounded-xl">
+				<PostCard post={openedPost} showHeart={Boolean(data.user)} />
+			</div>
 		</div>
 	</div>
 {/if}
