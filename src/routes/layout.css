@@ -58,6 +58,41 @@
   object-fit: cover;
 }
 
+.img-skeleton {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--muted);
+}
+.img-skeleton img {
+  display: block;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.img-skeleton.is-loaded img {
+  opacity: 1;
+}
+.img-skeleton:not(.is-loaded)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--on-primary) 55%, transparent) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: skeleton-shimmer 1.15s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes skeleton-shimmer {
+  to { transform: translateX(100%); }
+}
+
 .avatar-edit {
   position: relative;
   display: block;

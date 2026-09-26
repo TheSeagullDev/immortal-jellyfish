@@ -1,5 +1,6 @@
 <script>
 	import PostCard from '$lib/PostCard.svelte';
+	import LoadedImage from '$lib/LoadedImage.svelte';
 	import StarRating from '$lib/StarRating.svelte';
 
 	let { data } = $props();
@@ -153,7 +154,7 @@
 						style="width:{CARD_W}px; margin-right:{CARD_GAP}px; background:var(--surface);"
 					>
 						<div class="photo-frame">
-							<img
+							<LoadedImage
 								src={post.src}
 								alt={post.name}
 								width="192"

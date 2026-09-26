@@ -1,5 +1,6 @@
 <script>
 	import { page } from '$app/state';
+	import LoadedImage from './LoadedImage.svelte';
 	import StarRating from './StarRating.svelte';
 
 	let { halls = [], signedIn = false } = $props();
@@ -158,12 +159,9 @@
 							{photoName ? 'Change photo' : 'Choose photo'}
 						</label>
 						{#if photoPreview}
-							<img
-								src={photoPreview}
-								alt=""
-								class="mt-2 max-h-40 w-full rounded-md object-contain"
-								style="background:var(--surface)"
-							/>
+							<div class="photo-frame mt-2 overflow-hidden rounded-md">
+								<LoadedImage src={photoPreview} class="h-full w-full object-contain" />
+							</div>
 						{/if}
 						{#if photoName}
 							<p class="mt-1.5 truncate text-xs" style="color:var(--text-muted)">{photoName}</p>
