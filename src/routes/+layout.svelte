@@ -8,10 +8,9 @@
 
 	const signedIn = $derived(Boolean(data.user || data.session));
 	const showComposerFab = $derived.by(() => {
+		if (!signedIn) return false;
 		const path = page.url.pathname;
-		if (path === '/') return signedIn;
-		if (path === '/profile' || path.startsWith('/u/')) return true;
-		return false;
+		return path === '/' || path === '/profile' || path.startsWith('/u/');
 	});
 </script>
 
