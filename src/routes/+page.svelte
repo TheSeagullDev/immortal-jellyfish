@@ -216,7 +216,7 @@
 
 		<div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
 			<a
-				href="/login"
+				href="/signup"
 				class="rounded-md px-6 py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
 				style="background:var(--accent)"
 			>
