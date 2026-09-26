@@ -1,13 +1,55 @@
 <script>
 	import { enhance } from '$app/forms';
+	import StarRating from '$lib/StarRating.svelte';
+	import { formatRelativeTime } from '$lib/posts.js';
 
 	let { data, form } = $props();
 
 	let feedPosts = $state(/** @type {any[]} */ ([]));
+	let composerOpen = $state(false);
+	let photoName = $state('');
+	let photoPreview = $state('');
 
 	$effect(() => {
 		feedPosts = (data.posts ?? []).map((post) => ({ ...post }));
 	});
+
+	$effect(() => {
+		if (form?.error) composerOpen = true;
+	});
+
+	function resetPhoto() {
+		if (photoPreview) URL.revokeObjectURL(photoPreview);
+		photoName = '';
+		photoPreview = '';
+	}
+
+	function openComposer() {
+		composerOpen = true;
+	}
+
+	function closeComposer() {
+		composerOpen = false;
+		resetPhoto();
+	}
+
+	/**
+	 * @param {Event} event
+	 */
+	function onPhotoChange(event) {
+		const input = /** @type {HTMLInputElement} */ (event.currentTarget);
+		const file = input.files?.[0];
+		if (photoPreview) URL.revokeObjectURL(photoPreview);
+		photoName = file?.name ?? '';
+		photoPreview = file ? URL.createObjectURL(file) : '';
+	}
+
+	/**
+	 * @param {KeyboardEvent} event
+	 */
+	function onComposerKeydown(event) {
+		if (event.key === 'Escape') closeComposer();
+	}
 
 	/**
 	 * @param {any} post
@@ -77,115 +119,60 @@
 	<title>MealWise</title>
 </svelte:head>
 
+<svelte:window onkeydown={onComposerKeydown} />
+
 {#if data.user}
-	<div class="mx-auto max-w-3xl px-4 py-6">
-		<h1 class="text-2xl font-bold tracking-tight" style="color:var(--primary)">Feed</h1>
-
-		<form
-			method="POST"
-			action="?/create"
-			enctype="multipart/form-data"
-			class="mt-4 space-y-3 rounded-xl border p-4"
-			style="border-color:var(--secondary);background:color-mix(in srgb,var(--background) 80%,transparent)"
-		>
-			<p class="text-sm font-semibold">New post</p>
-
-			{#if form?.error}
-				<p class="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
-					{form.error}
-				</p>
-			{/if}
-
-			<label class="block text-sm">
-				<span class="mb-1 block font-medium">Photo</span>
-				<input type="file" name="image" accept="image/*" capture="environment" required class="block w-full text-sm" />
-			</label>
-
-			<label class="block text-sm">
-				<span class="mb-1 block font-medium">Caption</span>
-				<input
-					type="text"
-					name="caption"
-					value={form?.caption ?? ''}
-					required
-					maxlength="200"
-					placeholder="What's on the tray?"
-					class="block w-full rounded-md text-sm"
-					style="border-color:var(--secondary)"
-				/>
-			</label>
-
-			<div class="grid grid-cols-2 gap-3">
-				<label class="block text-sm">
-					<span class="mb-1 block font-medium">Hall</span>
-					<select
-						name="dining_hall_id"
-						required
-						class="block w-full rounded-md text-sm"
-						style="border-color:var(--secondary)"
-					>
-						<option value="">Select</option>
-						{#each data.halls ?? [] as hall}
-							<option value={hall.id} selected={form?.hallId === hall.id}>{hall.name}</option>
-						{/each}
-					</select>
-				</label>
-
-				<fieldset class="text-sm">
-					<legend class="mb-1 font-medium">Rating</legend>
-					<div class="flex flex-wrap gap-2">
-						{#each [1, 2, 3, 4, 5] as n}
-							<label class="flex items-center gap-1">
-								<input type="radio" name="rating" value={n} required checked={Number(form?.rating) === n} />
-								{n}
-							</label>
-						{/each}
-					</div>
-				</fieldset>
-			</div>
-
-			<button
-				type="submit"
-				class="w-full rounded-md px-4 py-2.5 text-sm font-semibold text-white"
-				style="background:var(--accent)"
-			>
-				Post
-			</button>
-		</form>
+	<div class="mx-auto max-w-3xl px-4 py-6 pb-24">
+		<h1 class="text-2xl font-bold tracking-tight" style="color:var(--text)">Feed</h1>
 
 		{#if data.feedError}
-			<p class="mt-4 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+			<p class="mt-4 rounded-md px-3 py-2 text-sm" style="background:color-mix(in srgb,#b42318 10%,var(--background));color:#8a1f16">
 				{data.feedError}
 			</p>
-		{:else if !data.posts?.length}
-			<p class="mt-8 text-center text-sm opacity-50">No posts yet. Be the first.</p>
 		{:else}
 			<div class="mt-6 space-y-4">
 				{#each feedPosts as post (post.id)}
-					<article
-						class="overflow-hidden rounded-xl border"
-						style="background:var(--background);border-color:color-mix(in srgb,var(--secondary) 70%,transparent)"
-					>
+					<article class="overflow-hidden rounded-xl" style="background:var(--surface)">
+						<div class="flex items-center justify-between gap-3 px-3 pt-3 pb-2">
+							<p class="min-w-0 truncate text-base">
+								<span class="font-medium">@{post.username}</span>
+								<span style="color:var(--text-muted)"> · {post.hallName}</span>
+							</p>
+							<StarRating value={post.rating} />
+						</div>
 						{#if post.imageUrl}
 							<div class="photo-frame">
 								<img src={post.imageUrl} alt="" />
 							</div>
 						{/if}
-						<div class="space-y-1 p-3">
-							<p class="font-semibold leading-tight">{post.caption}</p>
-							<p class="text-sm opacity-60">
-								{post.hallName} · @{post.username} · {post.postedAt}
-							</p>
-							<div class="flex items-center justify-between pt-1">
-								<p class="text-sm font-medium" style="color:var(--accent)">{post.rating} / 5</p>
+						<div class="space-y-2 p-3">
+							<p class="text-base leading-snug">{post.caption}</p>
+							<div class="flex items-center justify-between gap-3">
+								<p class="text-sm" style="color:var(--text-muted)">{formatRelativeTime(post.createdAt)}</p>
 								<form method="POST" action="?/{post.liked ? 'unlike' : 'like'}" use:enhance={likeEnhance(post)}>
 									<input type="hidden" name="post_id" value={post.id} />
 									<button
 										type="submit"
-										class="rounded-md border px-2.5 py-1 text-xs font-medium"
-										style="border-color:var(--secondary);{post.liked ? 'background:var(--primary);color:#fff' : ''}"
+										class="inline-flex items-center gap-1.5 text-base"
+										style="color: {post.liked ? 'var(--primary)' : 'var(--text-muted)'}"
+										aria-label={post.liked ? 'Unlike' : 'Like'}
 									>
-										{post.liked ? 'Liked' : 'Like'} · {post.likeCount}
+										<svg
+											width="20"
+											height="20"
+											viewBox="0 0 24 24"
+											aria-hidden="true"
+											fill={post.liked ? 'currentColor' : 'none'}
+											stroke="currentColor"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+										>
+											<path
+												d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+											/>
+										</svg>
+										{post.likeCount}
 									</button>
 								</form>
 							</div>
@@ -195,37 +182,167 @@
 			</div>
 		{/if}
 	</div>
+
+	{#if !composerOpen}
+		<button
+			type="button"
+			onclick={openComposer}
+			class="fixed right-5 bottom-5 z-40 grid h-14 w-14 place-items-center rounded-full p-0 transition-opacity hover:opacity-90"
+			style="background:var(--primary);color:var(--on-primary)"
+			aria-label="New post"
+		>
+			<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+				<path
+					d="M12 5v14M5 12h14"
+					stroke="currentColor"
+					stroke-width="2.25"
+					stroke-linecap="round"
+				/>
+			</svg>
+		</button>
+	{/if}
+
+	{#if composerOpen}
+		<div class="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
+			<button
+				type="button"
+				class="absolute inset-0"
+				style="background:color-mix(in srgb, var(--text) 40%, transparent)"
+				aria-label="Close new post"
+				onclick={closeComposer}
+			></button>
+			<div
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby="new-post-title"
+				class="relative z-10 w-full max-w-md rounded-xl p-4"
+				style="background:var(--background)"
+			>
+				<div class="mb-3 flex items-center justify-between">
+					<p id="new-post-title" class="text-sm font-semibold">New post</p>
+					<button
+						type="button"
+						class="rounded-md px-2 py-1 text-sm"
+						style="background:var(--surface);color:var(--text-muted)"
+						onclick={closeComposer}
+					>
+						Close
+					</button>
+				</div>
+
+				<form method="POST" action="?/create" enctype="multipart/form-data" class="space-y-3">
+					{#if form?.error}
+						<p class="rounded-md px-3 py-2 text-sm" style="background:color-mix(in srgb,#b42318 10%,var(--background));color:#8a1f16" role="alert">
+							{form.error}
+						</p>
+					{/if}
+
+					<div class="block text-sm">
+						<span class="mb-1 block font-medium">Photo</span>
+						<input
+							id="new-post-photo"
+							type="file"
+							name="image"
+							accept="image/*"
+							capture="environment"
+							required
+							class="sr-only"
+							onchange={onPhotoChange}
+						/>
+						<label
+							for="new-post-photo"
+							class="flex cursor-pointer items-center justify-center rounded-md px-4 py-3 text-sm font-semibold transition-opacity hover:opacity-80"
+							style="background:var(--surface);color:var(--primary)"
+						>
+							{photoName ? 'Change photo' : 'Choose photo'}
+						</label>
+						{#if photoPreview}
+							<img
+								src={photoPreview}
+								alt=""
+								class="mt-2 max-h-40 w-full rounded-md object-contain"
+								style="background:var(--surface)"
+							/>
+						{/if}
+						{#if photoName}
+							<p class="mt-1.5 truncate text-xs" style="color:var(--text-muted)">{photoName}</p>
+						{:else}
+							<p class="mt-1.5 text-xs" style="color:var(--text-muted)">JPG or PNG from your camera roll</p>
+						{/if}
+					</div>
+
+					<label class="block text-sm">
+						<span class="mb-1 block font-medium">Caption</span>
+						<input
+							type="text"
+							name="caption"
+							value={form?.caption ?? ''}
+							required
+							maxlength="200"
+							placeholder="What's on the tray?"
+							class="block w-full rounded-md text-sm"
+						/>
+					</label>
+
+					<div class="space-y-3">
+						<label class="block text-sm">
+							<span class="mb-1 block font-medium">Hall</span>
+							<select name="dining_hall_id" required class="block w-full rounded-md text-sm">
+								<option value="">Select</option>
+								{#each data.halls ?? [] as hall}
+									<option value={hall.id} selected={form?.hallId === hall.id}>{hall.name}</option>
+								{/each}
+							</select>
+						</label>
+
+						<fieldset class="text-sm">
+							<legend class="mb-1 font-medium">Rating</legend>
+							<StarRating interactive name="rating" value={form?.rating ?? 0} />
+						</fieldset>
+					</div>
+
+					<button
+						type="submit"
+						class="w-full rounded-md px-4 py-2.5 text-sm font-semibold"
+						style="background:var(--primary);color:var(--on-primary)"
+					>
+						Post
+					</button>
+				</form>
+			</div>
+		</div>
+	{/if}
 {:else}
 	<!-- Hero -->
 	<div class="px-5 pb-8 pt-12 text-center sm:px-8 sm:pb-12 sm:pt-16">
 		<span
-			class="inline-block rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-widest text-white"
-			style="background:var(--accent)"
+			class="inline-block rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-widest"
+			style="background:var(--surface);color:var(--text-muted)"
 		>
 			GT Dining · Ranked by you
 		</span>
 
-		<h1 class="mt-4 text-4xl font-extrabold tracking-tight sm:text-6xl" style="color:var(--primary)">
-			Meal<span style="color:var(--accent)">Wise</span>
+		<h1 class="mt-4 text-4xl font-extrabold tracking-tight sm:text-6xl" style="color:var(--text)">
+			Meal<span style="color:var(--primary)">Wise</span>
 		</h1>
 
-		<p class="mx-auto mt-3 max-w-sm text-base leading-relaxed sm:max-w-md sm:text-lg" style="color:var(--text);opacity:0.65">
+		<p class="mx-auto mt-3 max-w-sm text-base leading-relaxed sm:max-w-md sm:text-lg" style="color:var(--text-muted)">
 			The dining hall social feed built for Georgia Tech.
 			Post your plate, rate your food, find what's worth the walk.
 		</p>
 
-		<div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+		<div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
 			<a
 				href="/login"
-				class="rounded-md px-6 py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
-				style="background:var(--accent)"
+				class="rounded-md px-6 py-3 text-sm font-semibold transition-opacity hover:opacity-90"
+				style="background:var(--primary);color:var(--on-primary)"
 			>
 				Create account
 			</a>
 			<a
 				href="/login"
-				class="rounded-md border px-6 py-3 text-sm font-semibold transition-opacity hover:opacity-75"
-				style="border-color:var(--primary);color:var(--primary)"
+				class="rounded-md px-6 py-3 text-sm font-semibold transition-opacity hover:opacity-80"
+				style="background:var(--surface);color:var(--text)"
 			>
 				Sign in
 			</a>
@@ -233,7 +350,7 @@
 	</div>
 
 	<!-- Scrolling post-card rows -->
-	<div class="flex flex-col gap-3 overflow-hidden pb-10">
+	<div class="flex flex-col gap-4 overflow-hidden pb-10">
 		{#each rows as row}
 			<!--
 				--set-w must equal SET_SIZE × (CARD_W + CARD_GAP) exactly.
@@ -246,8 +363,8 @@
 			>
 				{#each looped(row.posts) as post}
 					<div
-						class="flex-none overflow-hidden rounded-xl border"
-						style="width:{CARD_W}px; margin-right:{CARD_GAP}px; background:var(--background); border-color:color-mix(in srgb, var(--secondary) 70%, transparent);"
+						class="flex-none overflow-hidden rounded-xl"
+						style="width:{CARD_W}px; margin-right:{CARD_GAP}px; background:var(--surface);"
 					>
 						<div class="photo-frame">
 							<img
@@ -259,9 +376,11 @@
 							/>
 						</div>
 						<div class="p-2.5">
-							<p class="truncate text-sm font-semibold leading-tight" style="color:var(--text)">{post.name}</p>
-							<p class="mt-0.5 truncate text-xs opacity-55" style="color:var(--text)">{post.hall} · @{post.user}</p>
-							<p class="mt-1 text-xs font-medium" style="color:var(--accent)">{post.rating} / 5</p>
+							<p class="truncate text-base font-semibold leading-tight" style="color:var(--text)">{post.name}</p>
+							<p class="mt-0.5 truncate text-sm" style="color:var(--text-muted)">{post.hall} · @{post.user}</p>
+							<div class="mt-1">
+								<StarRating value={post.rating} size="sm" />
+							</div>
 						</div>
 					</div>
 				{/each}
@@ -269,7 +388,7 @@
 		{/each}
 	</div>
 
-	<p class="pb-8 text-center text-xs opacity-40" style="color:var(--text)">
+	<p class="pb-8 text-center text-xs" style="color:var(--text-muted)">
 		By Georgia Tech Students, For Georgia Tech Students
 	</p>
 {/if}

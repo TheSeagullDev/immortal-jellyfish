@@ -4,36 +4,58 @@
 
 @layer base {
   :root {
-    --text: #050505;
-    --background: #fafafa;
-    --primary: #4591d3;
-    --secondary: #e8d5c4;
-    --accent: #d97c5a;
+    --text: #2c3642;
+    --text-muted: #5d6d7e;
+    --background: #f7f9fb;
+    --surface: #eef2f6;
+    --muted: #dce4ec;
+    --primary: #3d7eb8;
+    --on-primary: #f7f9fb;
+    --star: #8a9ea6;
   }
   .dark {
-    --text: #fafafa;
-    --background: #0f0f0f;
-    --primary: #2c77ba;
-    --secondary: #3a2218;
-    --accent: #c4623c;
+    --text: #e4eaf0;
+    --text-muted: #9aabba;
+    --background: #1c242c;
+    --surface: #26313c;
+    --muted: #354454;
+    --primary: #5a9fd0;
+    --on-primary: #f7f9fb;
+    --star: #8a9ea6;
   }
 
   body {
     background-color: var(--background);
     color: var(--text);
   }
+
+  input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']),
+  select,
+  textarea {
+    border: none;
+    background-color: var(--surface);
+    color: var(--text);
+    box-shadow: none;
+  }
+
+  input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']):focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 35%, transparent);
+  }
 }
 
 /* iPhone stills are 4:3; phone-held photos are 3:4. contain = no crop. */
 .photo-frame {
   aspect-ratio: 3 / 4;
-  background: color-mix(in srgb, var(--secondary) 40%, var(--background));
+  background: var(--surface);
 }
 .photo-frame img {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
 }
 
 @keyframes scroll-left {
