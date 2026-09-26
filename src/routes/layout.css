@@ -2,27 +2,20 @@
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
 
-@theme {
-  --color-brand: #4591d3;
-  --color-brand-dark: #2c77ba;
-  --color-secondary: #d1bca3;
-  --color-accent: #bbab7c;
-}
-
 @layer base {
   :root {
     --text: #050505;
     --background: #fafafa;
     --primary: #4591d3;
-    --secondary: #d1bca3;
-    --accent: #bbab7c;
+    --secondary: #e8d5c4;
+    --accent: #d97c5a;
   }
   .dark {
     --text: #fafafa;
-    --background: #050505;
+    --background: #0f0f0f;
     --primary: #2c77ba;
-    --secondary: #5c472e;
-    --accent: #837344;
+    --secondary: #3a2218;
+    --accent: #c4623c;
   }
 
   body {
