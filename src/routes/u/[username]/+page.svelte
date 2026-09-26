@@ -439,19 +439,19 @@
 					touch-action: pan-y;
 				"
 			>
-				<div class="w-1/3 shrink-0">
+				<div class="w-1/3 shrink-0 px-3">
 					{#if prevPost}
 						<div class="max-h-[85dvh] overflow-hidden rounded-xl pointer-events-none">
 							<PostCard post={prevPost} showHeart={false} />
 						</div>
 					{/if}
 				</div>
-				<div class="w-1/3 shrink-0">
+				<div class="w-1/3 shrink-0 px-3">
 					<div class="max-h-[85dvh] overflow-y-auto rounded-xl">
 						<PostCard post={openedPost} showHeart={Boolean(data.user)} />
 					</div>
 				</div>
-				<div class="w-1/3 shrink-0">
+				<div class="w-1/3 shrink-0 px-3">
 					{#if nextPost}
 						<div class="max-h-[85dvh] overflow-hidden rounded-xl pointer-events-none">
 							<PostCard post={nextPost} showHeart={false} />
