@@ -14,6 +14,9 @@
 	let rating = $state(0);
 	let submitting = $state(false);
 	let clientError = $state('');
+	let overlayBox = $state(
+		'position:fixed;inset:0;width:100%;height:100dvh;min-height:100lvh;'
+	);
 
 	const form = $derived(page.form);
 
@@ -68,6 +71,37 @@
 		if (event.key === 'Escape') closeComposer();
 	}
 
+	$effect(() => {
+		if (!composerOpen) return;
+
+		const html = document.documentElement;
+		const body = document.body;
+		const prevHtmlOverflow = html.style.overflow;
+		const prevBodyOverflow = body.style.overflow;
+		html.style.overflow = 'hidden';
+		body.style.overflow = 'hidden';
+
+		const syncOverlay = () => {
+			const vv = window.visualViewport;
+			if (!vv) {
+				overlayBox = 'position:fixed;inset:0;width:100%;height:100lvh;min-height:100%;';
+				return;
+			}
+			overlayBox = `position:fixed;top:${vv.offsetTop}px;left:${vv.offsetLeft}px;width:${vv.width}px;height:${vv.height}px;`;
+		};
+
+		syncOverlay();
+		window.visualViewport?.addEventListener('resize', syncOverlay);
+		window.visualViewport?.addEventListener('scroll', syncOverlay);
+
+		return () => {
+			html.style.overflow = prevHtmlOverflow;
+			body.style.overflow = prevBodyOverflow;
+			window.visualViewport?.removeEventListener('resize', syncOverlay);
+			window.visualViewport?.removeEventListener('scroll', syncOverlay);
+		};
+	});
+
 	/**
 	 * @param {import('@sveltejs/kit').ActionResult} result
 	 */
@@ -111,13 +145,13 @@
 	{#if composerOpen}
 		<div
 			style="
-				position: fixed;
-				inset: 0;
+				{overlayBox}
 				z-index: 50;
 				display: flex;
 				align-items: center;
 				justify-content: center;
 				padding: 1rem;
+				box-sizing: border-box;
 			"
 		>
 			<button
@@ -138,7 +172,7 @@
 				aria-modal="true"
 				aria-labelledby="new-post-title"
 				class="relative z-10 w-full max-w-md overflow-y-auto rounded-xl p-4"
-				style="background:var(--background);max-height:calc(100dvh - 2rem)"
+				style="background:var(--background);max-height:calc(100% - 2rem)"
 			>
 				<div class="mb-3 flex items-center justify-between">
 					<p id="new-post-title" class="text-sm font-semibold">New post</p>
