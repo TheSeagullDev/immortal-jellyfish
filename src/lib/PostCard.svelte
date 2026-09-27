@@ -23,7 +23,7 @@
 		{#if post.username}
 			<a href="/u/{post.username}" class="flex min-w-0 flex-1 items-center gap-2">
 				<PersonAvatar src={post.avatarUrl} size="sm" />
-				<p class="min-w-0 truncate text-base">
+				<p class="min-w-0 text-base leading-snug wrap-anywhere line-clamp-2">
 					<span class="font-medium">@{post.username}</span>
 					<span style="color:var(--text-muted)"> · {post.hallName}</span>
 				</p>
@@ -31,7 +31,7 @@
 		{:else}
 			<div class="flex min-w-0 flex-1 items-center gap-2">
 				<PersonAvatar src={post.avatarUrl} size="sm" />
-				<p class="min-w-0 truncate text-base">
+				<p class="min-w-0 text-base leading-snug wrap-anywhere line-clamp-2">
 					<span style="color:var(--text-muted)">{post.hallName}</span>
 				</p>
 			</div>
