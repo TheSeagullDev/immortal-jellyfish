@@ -3,13 +3,15 @@
 	import PersonAvatar from './PersonAvatar.svelte';
 	import LoadedImage from './LoadedImage.svelte';
 	import StarRating from './StarRating.svelte';
-	import { formatRelativeTime } from './posts.js';
+	import { foodTagIsActive, formatRelativeTime } from './posts.js';
 
 	let {
 		post,
 		likeEnhance = undefined,
 		showHeart = true,
-		currentUserId = ''
+		currentUserId = '',
+		searchQuery = '',
+		onFoodTag = undefined
 	} = $props();
 
 	const canDelete = $derived(Boolean(currentUserId && post.authorId === currentUserId));
@@ -69,10 +71,16 @@
 		{#if post.foods?.length}
 			<p class="flex flex-wrap gap-1">
 				{#each post.foods as name}
-					<span
+					<button
+						type="button"
 						class="rounded-full px-2 py-0.5 text-xs"
-						style="background:var(--muted);color:var(--text-muted)">{name}</span
+						style={foodTagIsActive(name, searchQuery)
+							? 'background:var(--primary);color:var(--on-primary);border:0;cursor:pointer'
+							: 'background:var(--muted);color:var(--text-muted);border:0;cursor:pointer'}
+						onclick={() => onFoodTag?.(name)}
 					>
+						{name}
+					</button>
 				{/each}
 			</p>
 		{/if}
