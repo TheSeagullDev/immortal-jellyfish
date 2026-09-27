@@ -65,6 +65,7 @@
 	 */
 	function settleTo(px, delta) {
 		if (animating) return;
+		skipTransition = false;
 		animating = true;
 		dragging = false;
 		const track = trackEl;
@@ -76,9 +77,6 @@
 			openedId = tabPosts[openedIndex + delta]?.id ?? null;
 			dragX = 0;
 			animating = false;
-			requestAnimationFrame(() => {
-				skipTransition = false;
-			});
 		};
 		if (!track) {
 			finish();
@@ -121,6 +119,7 @@
 		if (animating) return;
 		const touch = event.changedTouches[0];
 		if (!touch) return;
+		skipTransition = false;
 		swipeStartX = touch.clientX;
 		swipeStartY = touch.clientY;
 		dragging = true;
@@ -150,13 +149,18 @@
 
 	function onSwipeEnd() {
 		if (!dragging) return;
-		dragging = false;
 		if (swipeAxis === 'x') {
 			const width = paneW || 360;
-			if (dragX < -56 && canNext) settleTo(-width, 1);
-			else if (dragX > 56 && canPrev) settleTo(width, -1);
-			else dragX = 0;
+			if (dragX < -56 && canNext) {
+				settleTo(-width, 1);
+			} else if (dragX > 56 && canPrev) {
+				settleTo(width, -1);
+			} else {
+				dragging = false;
+				dragX = 0;
+			}
 		} else {
+			dragging = false;
 			dragX = 0;
 		}
 		swipeAxis = null;
