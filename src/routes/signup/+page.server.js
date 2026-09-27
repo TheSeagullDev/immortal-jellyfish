@@ -7,6 +7,7 @@ import {
 	isGatechEmail,
 	normalizeEmail
 } from '$lib/auth/email.js';
+import { createImplicitAuthClient } from '$lib/auth/implicit-client.js';
 import { isValidUsername, normalizeUsername, usernameErrorMessage } from '$lib/auth/username.js';
 
 /** @type {import('./$types').PageServerLoad} */
@@ -82,7 +83,7 @@ export const actions = {
 			return fail(400, { name, username, email, error: 'That username is already taken.' });
 		}
 
-		const { data, error } = await locals.supabase.auth.signUp({
+		const { data, error } = await createImplicitAuthClient().auth.signUp({
 			email,
 			password,
 			options: {
