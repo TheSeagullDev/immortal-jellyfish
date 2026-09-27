@@ -78,6 +78,19 @@
 				/>
 			</label>
 
+			<label class="block text-sm">
+				<span class="mb-1 block font-medium" style="color:var(--text)">Confirm password</span>
+				<input
+					type="password"
+					name="password_confirm"
+					required
+					minlength="6"
+					autocomplete="new-password"
+					placeholder="********"
+					class="block w-full rounded-md"
+				/>
+			</label>
+
 			<button
 				type="submit"
 				class="w-full rounded-md px-4 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90"

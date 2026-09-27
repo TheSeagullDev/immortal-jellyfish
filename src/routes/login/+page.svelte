@@ -23,6 +23,16 @@
 			</p>
 		{/if}
 
+		{#if data.magicSent}
+			<p
+				class="mt-4 rounded-md px-3 py-2 text-sm"
+				style="background:var(--surface);color:var(--text)"
+				role="status"
+			>
+				Check your inbox for a sign-in link. It opens Settings so you can set a new password.
+			</p>
+		{/if}
+
 		{#if form?.error}
 			<p
 				class="mt-4 rounded-md px-3 py-2 text-sm"
@@ -52,7 +62,6 @@
 				<input
 					type="password"
 					name="password"
-					required
 					minlength="6"
 					autocomplete="current-password"
 					placeholder="********"
@@ -67,6 +76,17 @@
 			>
 				Sign in
 			</button>
+			<button
+				type="submit"
+				formaction="?/magic"
+				class="w-full rounded-md px-4 py-2.5 text-sm font-semibold transition-opacity hover:opacity-80"
+				style="background:var(--surface);color:var(--text)"
+			>
+				Email me a sign-in link
+			</button>
+			<p class="text-center text-xs" style="color:var(--text-muted)">
+				Forgot your password? Use the sign-in link, then set a new one in Settings.
+			</p>
 		</form>
 
 		<p class="mt-6 text-center text-sm" style="color:var(--text-muted)">

@@ -3,7 +3,7 @@ import { containsEmailAddress, displayNameEmailErrorMessage } from '$lib/auth/em
 import { isValidUsername, normalizeUsername, usernameErrorMessage } from '$lib/auth/username.js';
 
 /** @type {import('./$types').PageServerLoad} */
-export const load = async ({ locals }) => {
+export const load = async ({ locals, url }) => {
 	const { user } = await locals.safeGetSession();
 	if (!user) {
 		throw redirect(303, '/login');
@@ -18,7 +18,8 @@ export const load = async ({ locals }) => {
 	return {
 		email: user.email ?? '',
 		displayName: profile?.display_name ?? user.user_metadata?.display_name ?? '',
-		username: profile?.username ?? user.user_metadata?.username ?? ''
+		username: profile?.username ?? user.user_metadata?.username ?? '',
+		setPassword: url.searchParams.get('setPassword') === '1'
 	};
 };
 
@@ -121,11 +122,12 @@ export const actions = {
 		}
 
 		const form = await request.formData();
+		const fromReset = String(form.get('from_reset') ?? '') === '1';
 		const oldPassword = String(form.get('old_password') ?? '');
 		const newPassword = String(form.get('new_password') ?? '');
 		const confirm = String(form.get('new_password_confirm') ?? '');
 
-		if (!oldPassword) {
+		if (!fromReset && !oldPassword) {
 			return fail(400, { field: 'password', error: 'Old password is required.' });
 		}
 		if (newPassword.length < 6) {
@@ -134,20 +136,22 @@ export const actions = {
 		if (newPassword !== confirm) {
 			return fail(400, { field: 'password', error: 'New passwords do not match.' });
 		}
-		if (newPassword === oldPassword) {
+		if (!fromReset && newPassword === oldPassword) {
 			return fail(400, {
 				field: 'password',
 				error: 'New password must be different from the old password.'
 			});
 		}
 
-		const { error: verifyError } = await locals.supabase.auth.signInWithPassword({
-			email: user.email,
-			password: oldPassword
-		});
+		if (!fromReset) {
+			const { error: verifyError } = await locals.supabase.auth.signInWithPassword({
+				email: user.email,
+				password: oldPassword
+			});
 
-		if (verifyError) {
-			return fail(400, { field: 'password', error: 'Old password is incorrect.' });
+			if (verifyError) {
+				return fail(400, { field: 'password', error: 'Old password is incorrect.' });
+			}
 		}
 
 		const { error } = await locals.supabase.auth.updateUser({ password: newPassword });

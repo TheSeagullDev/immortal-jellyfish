@@ -1,5 +1,6 @@
 <script>
 	import { enhance } from '$app/forms';
+	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { applyTheme, readThemeMode, resolvedTheme, setUseSystemTheme } from '$lib/theme.js';
 
@@ -26,6 +27,7 @@
 		if (form?.updated === 'name') editingName = false;
 		if (form?.updated === 'username') editingUsername = false;
 		if (form?.updated === 'password') editingPassword = false;
+		if (data.setPassword) editingPassword = true;
 	});
 
 	onMount(() => {
@@ -60,6 +62,16 @@
 <section>
 	<h1 class="text-2xl font-bold tracking-tight" style="color:var(--text)">Settings</h1>
 	<p class="mt-2 text-sm" style="color:var(--text-muted)">Manage your MealWise account.</p>
+
+	{#if data.setPassword}
+		<p
+			class="mt-4 rounded-md px-3 py-2 text-sm"
+			style="background:var(--surface);color:var(--text)"
+			role="status"
+		>
+			Signed in with email. Choose a new password below.
+		</p>
+	{/if}
 
 	{#if showNotice}
 		<p
@@ -250,10 +262,16 @@
 					use:enhance={() => {
 						return async ({ result, update }) => {
 							await update();
-							if (result.type === 'success') editingPassword = false;
+							if (result.type === 'success') {
+								editingPassword = false;
+								if (data.setPassword) await goto('/settings');
+							}
 						};
 					}}
 				>
+					{#if data.setPassword}
+						<input type="hidden" name="from_reset" value="1" />
+					{:else}
 					<label class="block text-sm">
 						<span class="mb-1 block font-medium">Old password</span>
 						<input
@@ -264,6 +282,7 @@
 							class="edit-field block w-full rounded-md text-sm"
 						/>
 					</label>
+					{/if}
 					<label class="block text-sm">
 						<span class="mb-1 block font-medium">New password</span>
 						<input
@@ -294,6 +313,7 @@
 						>
 							Save
 						</button>
+						{#if !data.setPassword}
 						<button
 							type="button"
 							class="rounded-md px-3 py-1.5 text-sm"
@@ -302,6 +322,7 @@
 						>
 							Cancel
 						</button>
+						{/if}
 					</div>
 				</form>
 			{:else}

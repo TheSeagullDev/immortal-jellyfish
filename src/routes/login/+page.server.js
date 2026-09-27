@@ -15,7 +15,8 @@ export const load = async ({ locals, url }) => {
 	}
 
 	return {
-		registered: url.searchParams.get('registered') === '1'
+		registered: url.searchParams.get('registered') === '1',
+		magicSent: url.searchParams.get('magic') === '1'
 	};
 };
 
@@ -56,5 +57,33 @@ export const actions = {
 		}
 
 		throw redirect(303, '/');
+	},
+
+	magic: async ({ request, locals, url }) => {
+		const form = await request.formData();
+		const email = normalizeEmail(String(form.get('email') ?? ''));
+
+		if (!isGatechEmail(email)) {
+			return fail(400, { email, error: gatechEmailErrorMessage() });
+		}
+
+		const { error } = await locals.supabase.auth.signInWithOtp({
+			email,
+			options: {
+				shouldCreateUser: false,
+				emailRedirectTo: `${url.origin}/auth/callback?next=${encodeURIComponent('/settings?setPassword=1')}`
+			}
+		});
+
+		if (error) {
+			console.error('magic link failed', error.message);
+			const missing = /signups not allowed|user not found|unable to find/i.test(error.message);
+			return fail(400, {
+				email,
+				error: missing ? 'No account with that email.' : error.message
+			});
+		}
+
+		throw redirect(303, '/login?magic=1');
 	}
 };
