@@ -4,7 +4,7 @@
 	let resetOpen = $state(false);
 
 	$effect(() => {
-		if (form?.resetEmail || data.magicSent) resetOpen = true;
+		if (form?.resetEmail || form?.otpSent) resetOpen = true;
 	});
 </script>
 
@@ -29,13 +29,13 @@
 			</p>
 		{/if}
 
-		{#if data.magicSent}
+		{#if form?.otpSent && !form?.error}
 			<p
 				class="mt-4 rounded-md px-3 py-2 text-sm"
 				style="background:var(--surface);color:var(--text)"
 				role="status"
 			>
-				If an account exists for that email, we sent a link.
+				If an account exists for that email, we sent a 6-digit code.
 			</p>
 		{/if}
 
@@ -49,8 +49,52 @@
 			</p>
 		{/if}
 
-		{#if resetOpen}
-			<form method="POST" action="?/magic" class="mt-6 space-y-4">
+		{#if resetOpen && form?.otpSent}
+			<form method="POST" action="?/verifyOtp" class="mt-6 space-y-4">
+				<p class="text-sm font-semibold" style="color:var(--text)">Forgot password</p>
+				<input type="hidden" name="email" value={form.resetEmail ?? ''} />
+				<label class="block text-sm">
+					<span class="mb-1 block font-medium" style="color:var(--text)">Code</span>
+					<input
+						type="text"
+						name="token"
+						inputmode="numeric"
+						pattern="[0-9]*"
+						autocomplete="one-time-code"
+						maxlength="8"
+						required
+						placeholder="123456"
+						class="block w-full rounded-md tracking-[0.3em]"
+					/>
+				</label>
+				<button
+					type="submit"
+					class="w-full rounded-md px-4 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90"
+					style="background:var(--primary);color:var(--on-primary)"
+				>
+					Continue
+				</button>
+			</form>
+			<form method="POST" action="?/reset" class="mt-3">
+				<input type="hidden" name="email" value={form.resetEmail ?? ''} />
+				<button
+					type="submit"
+					class="w-full text-center text-sm font-semibold"
+					style="background:transparent;border:0;color:var(--primary);cursor:pointer"
+				>
+					Resend code
+				</button>
+			</form>
+			<button
+				type="button"
+				class="mt-2 w-full text-center text-sm font-semibold"
+				style="background:transparent;border:0;color:var(--primary);cursor:pointer"
+				onclick={() => (resetOpen = false)}
+			>
+				Back to sign in
+			</button>
+		{:else if resetOpen}
+			<form method="POST" action="?/reset" class="mt-6 space-y-4">
 				<p class="text-sm font-semibold" style="color:var(--text)">Forgot password</p>
 				<label class="block text-sm">
 					<span class="mb-1 block font-medium" style="color:var(--text)">Email</span>
@@ -69,7 +113,7 @@
 					class="w-full rounded-md px-4 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90"
 					style="background:var(--primary);color:var(--on-primary)"
 				>
-					Send
+					Send code
 				</button>
 				<button
 					type="button"
