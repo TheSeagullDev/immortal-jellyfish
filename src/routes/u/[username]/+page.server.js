@@ -1,11 +1,9 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { containsEmailAddress, displayNameEmailErrorMessage } from '$lib/auth/email.js';
-import {
-	isValidUsername,
-	normalizeUsername,
-	usernameErrorMessage
-} from '$lib/auth/username.js';
-import { mapPosts, postsSelect, resolveImageUrl } from '$lib/posts.js';
+import { isValidUsername, normalizeUsername, usernameErrorMessage } from '$lib/auth/username.js';
+import { compressImage } from '$lib/compress-image.js';
+import { IMAGE_CACHE_CONTROL, isPublicImagePath, resolveImageUrl } from '$lib/food-images.js';
+import { mapPosts, postsSelect } from '$lib/posts.js';
 
 /**
  * @param {{ supabase: import('@supabase/supabase-js').SupabaseClient, safeGetSession: Function }} locals
@@ -71,20 +69,23 @@ export const load = async ({ locals, params, url }) => {
 	const tab = url.searchParams.get('tab') === 'liked' ? 'liked' : 'posts';
 	const isOwn = Boolean(user && user.id === profile.id);
 
-	const [{ data: postRows, error: postsError }, { data: likeRows, error: likesError }, { data: halls }] =
-		await Promise.all([
-			locals.supabase
-				.from('posts')
-				.select(postsSelect)
-				.eq('author_id', profile.id)
-				.order('created_at', { ascending: false }),
-			locals.supabase
-				.from('likes')
-				.select('post_id, created_at')
-				.eq('user_id', profile.id)
-				.order('created_at', { ascending: false }),
-			locals.supabase.from('dining_halls').select('id, name, slug').order('name')
-		]);
+	const [
+		{ data: postRows, error: postsError },
+		{ data: likeRows, error: likesError },
+		{ data: halls }
+	] = await Promise.all([
+		locals.supabase
+			.from('posts')
+			.select(postsSelect)
+			.eq('author_id', profile.id)
+			.order('created_at', { ascending: false }),
+		locals.supabase
+			.from('likes')
+			.select('post_id, created_at')
+			.eq('user_id', profile.id)
+			.order('created_at', { ascending: false }),
+		locals.supabase.from('dining_halls').select('id, name, slug').order('name')
+	]);
 
 	if (postsError) console.error('profile posts load failed', postsError);
 	if (likesError) console.error('profile likes load failed', likesError);
@@ -102,9 +103,7 @@ export const load = async ({ locals, params, url }) => {
 	}
 
 	const favoriteHall =
-		profile.dining_halls && typeof profile.dining_halls === 'object'
-			? profile.dining_halls
-			: null;
+		profile.dining_halls && typeof profile.dining_halls === 'object' ? profile.dining_halls : null;
 
 	return {
 		isOwn,
@@ -144,14 +143,18 @@ export const actions = {
 			return fail(400, { error: 'Choose a photo.' });
 		}
 
-		const ext = image.name.includes('.') ? image.name.split('.').pop()?.toLowerCase() : 'jpg';
-		const avatarPath = `${user.id}/avatar.${ext || 'jpg'}`;
+		const originalBytes = new Uint8Array(await image.arrayBuffer());
+		const prepared = await compressImage(originalBytes, image.type || 'image/jpeg', {
+			maxEdge: 512
+		});
+		const avatarPath = `${user.id}/avatar-${crypto.randomUUID()}.${prepared.ext}`;
 
 		const { error: uploadError } = await locals.supabase.storage
 			.from('food-images')
-			.upload(avatarPath, image, {
-				contentType: image.type || 'image/jpeg',
-				upsert: true
+			.upload(avatarPath, prepared.bytes, {
+				contentType: prepared.contentType,
+				cacheControl: IMAGE_CACHE_CONTROL,
+				upsert: false
 			});
 
 		if (uploadError) {
@@ -164,7 +167,16 @@ export const actions = {
 			.eq('id', user.id);
 
 		if (updateError) {
+			await locals.supabase.storage.from('food-images').remove([avatarPath]);
 			return fail(400, { error: updateError.message });
+		}
+
+		const previous = profile.avatar_path;
+		if (previous && previous !== avatarPath && !isPublicImagePath(previous)) {
+			const { error: removeError } = await locals.supabase.storage
+				.from('food-images')
+				.remove([previous]);
+			if (removeError) console.error('old avatar remove failed', removeError);
 		}
 
 		return { updated: true };

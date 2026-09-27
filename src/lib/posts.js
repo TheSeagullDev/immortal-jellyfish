@@ -1,27 +1,4 @@
-const SIGNED_URL_TTL = 60 * 60;
-
-/**
- * @param {string | null | undefined} path
- */
-export function isPublicImagePath(path) {
-	return typeof path === 'string' && (path.startsWith('/') || path.startsWith('http'));
-}
-
-/**
- * @param {import('@supabase/supabase-js').SupabaseClient} supabase
- * @param {string} path
- */
-export async function resolveImageUrl(supabase, path) {
-	if (!path) return '';
-	if (isPublicImagePath(path)) return path;
-
-	const { data, error } = await supabase.storage.from('food-images').createSignedUrl(path, SIGNED_URL_TTL);
-	if (error) {
-		console.error('createSignedUrl failed', error);
-		return '';
-	}
-	return data?.signedUrl ?? '';
-}
+import { resolveImageUrls } from '$lib/food-images.js';
 
 export const postsSelect = `
 	id,
@@ -75,29 +52,32 @@ export function formatRelativeTime(iso) {
  */
 export async function mapPosts(supabase, rows, userId = null) {
 	const list = Array.isArray(rows) ? rows : [];
-	const mapped = await Promise.all(
-		list.map(async (row) => {
-			const hall = row.dining_halls && typeof row.dining_halls === 'object' ? row.dining_halls : {};
-			const profile = row.profiles && typeof row.profiles === 'object' ? row.profiles : {};
-			const likes = Array.isArray(row.likes) ? row.likes : [];
-			return {
-				id: row.id,
-				authorId: row.author_id ?? '',
-				caption: row.caption ?? '',
-				rating: row.rating ?? 0,
-				imageUrl: await resolveImageUrl(supabase, String(row.image_path ?? '')),
-				createdAt: row.created_at,
-				postedAt: formatPostTime(row.created_at),
-				hallName: hall.name ?? '',
-				username: profile.username ?? '',
-				authorName: profile.display_name ?? '',
-				avatarUrl: '',
-				likeCount: likes.length,
-				liked: userId ? likes.some((like) => like.user_id === userId) : false,
-				foods: Array.isArray(row.foods) ? row.foods.filter((name) => typeof name === 'string') : []
-			};
-		})
+	const imageUrls = await resolveImageUrls(
+		supabase,
+		list.map((row) => String(row.image_path ?? ''))
 	);
+	const mapped = list.map((row) => {
+		const hall = row.dining_halls && typeof row.dining_halls === 'object' ? row.dining_halls : {};
+		const profile = row.profiles && typeof row.profiles === 'object' ? row.profiles : {};
+		const likes = Array.isArray(row.likes) ? row.likes : [];
+		const imagePath = String(row.image_path ?? '');
+		return {
+			id: row.id,
+			authorId: row.author_id ?? '',
+			caption: row.caption ?? '',
+			rating: row.rating ?? 0,
+			imageUrl: imageUrls.get(imagePath) ?? '',
+			createdAt: row.created_at,
+			postedAt: formatPostTime(row.created_at),
+			hallName: hall.name ?? '',
+			username: profile.username ?? '',
+			authorName: profile.display_name ?? '',
+			avatarUrl: '',
+			likeCount: likes.length,
+			liked: userId ? likes.some((like) => like.user_id === userId) : false,
+			foods: Array.isArray(row.foods) ? row.foods.filter((name) => typeof name === 'string') : []
+		};
+	});
 
 	const usernames = [...new Set(mapped.map((post) => post.username).filter(Boolean))];
 	if (!usernames.length) return mapped;
@@ -111,10 +91,14 @@ export async function mapPosts(supabase, rows, userId = null) {
 		return mapped;
 	}
 
+	const avatarUrls = await resolveImageUrls(
+		supabase,
+		avatars.map((row) => String(row.avatar_path ?? ''))
+	);
 	/** @type {Record<string, string>} */
 	const urls = {};
 	for (const row of avatars) {
-		urls[row.username] = await resolveImageUrl(supabase, String(row.avatar_path ?? ''));
+		urls[row.username] = avatarUrls.get(String(row.avatar_path ?? '')) ?? '';
 	}
 
 	return mapped.map((post) => ({
