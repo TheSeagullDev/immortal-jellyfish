@@ -10,7 +10,8 @@ export const postsSelect = `
 	created_at,
 	dining_halls!dining_hall_id ( name, slug ),
 	profiles!author_id ( display_name, username ),
-	likes ( user_id )
+	likes ( user_id ),
+	comments ( id, body, created_at, profiles!author_id ( username ) )
 `;
 
 /**
@@ -60,6 +61,8 @@ export async function mapPosts(supabase, rows, userId = null) {
 		const hall = row.dining_halls && typeof row.dining_halls === 'object' ? row.dining_halls : {};
 		const profile = row.profiles && typeof row.profiles === 'object' ? row.profiles : {};
 		const likes = Array.isArray(row.likes) ? row.likes : [];
+		const comments = Array.isArray(row.comments) ? [...row.comments] : [];
+		comments.sort((a, b) => String(a.created_at ?? '').localeCompare(String(b.created_at ?? '')));
 		const imagePath = String(row.image_path ?? '');
 		return {
 			id: row.id,
@@ -75,7 +78,17 @@ export async function mapPosts(supabase, rows, userId = null) {
 			avatarUrl: '',
 			likeCount: likes.length,
 			liked: userId ? likes.some((like) => like.user_id === userId) : false,
-			foods: Array.isArray(row.foods) ? row.foods.filter((name) => typeof name === 'string') : []
+			foods: Array.isArray(row.foods) ? row.foods.filter((name) => typeof name === 'string') : [],
+			comments: comments.map((comment) => {
+				const commentProfile =
+					comment.profiles && typeof comment.profiles === 'object' ? comment.profiles : {};
+				return {
+					id: comment.id,
+					body: comment.body ?? '',
+					createdAt: comment.created_at,
+					username: commentProfile.username ?? ''
+				};
+			})
 		};
 	});
 

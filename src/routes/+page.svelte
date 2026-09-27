@@ -95,7 +95,7 @@
 		{:else}
 			<div class="mt-6 space-y-4">
 				{#each feedPosts as post (post.id)}
-					<PostCard {post} {likeEnhance} />
+					<PostCard {post} {likeEnhance} currentUserId={data.user.id} />
 				{/each}
 			</div>
 		{/if}

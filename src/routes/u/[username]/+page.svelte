@@ -470,7 +470,7 @@
 				</div>
 				<div class="w-1/3 shrink-0 px-3">
 					<div class="max-h-[85dvh] overflow-y-auto rounded-xl">
-						<PostCard post={openedPost} showHeart={Boolean(data.user)} />
+						<PostCard post={openedPost} showHeart={Boolean(data.user)} currentUserId={data.user?.id ?? ''} />
 					</div>
 				</div>
 				<div class="w-1/3 shrink-0 px-3">
