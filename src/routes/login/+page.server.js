@@ -22,7 +22,7 @@ export const load = async ({ locals, url }) => {
 
 /** @type {import('./$types').Actions} */
 export const actions = {
-	default: async ({ request, locals }) => {
+	login: async ({ request, locals }) => {
 		const form = await request.formData();
 		const email = normalizeEmail(String(form.get('email') ?? ''));
 		const password = String(form.get('password') ?? '');
@@ -64,7 +64,7 @@ export const actions = {
 		const email = normalizeEmail(String(form.get('email') ?? ''));
 
 		if (!isGatechEmail(email)) {
-			return fail(400, { email, error: gatechEmailErrorMessage() });
+			return fail(400, { resetEmail: email, error: gatechEmailErrorMessage() });
 		}
 
 		const { error } = await locals.supabase.auth.signInWithOtp({
@@ -77,11 +77,6 @@ export const actions = {
 
 		if (error) {
 			console.error('magic link failed', error.message);
-			const missing = /signups not allowed|user not found|unable to find/i.test(error.message);
-			return fail(400, {
-				email,
-				error: missing ? 'No account with that email.' : error.message
-			});
 		}
 
 		throw redirect(303, '/login?magic=1');
