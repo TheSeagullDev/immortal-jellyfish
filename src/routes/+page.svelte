@@ -18,11 +18,35 @@
 	);
 
 	let search = $state('');
+	/** @type {'new' | 'top' | 'rated'} */
+	let sort = $state('new');
+	let hallFilter = $state('all');
 
-	const visiblePosts = $derived(feedPosts.filter((post) => postMatchesSearch(post, search)));
+	const hallFiltered = $derived(
+		hallFilter === 'all'
+			? feedPosts
+			: feedPosts.filter((post) => post.hallName === hallFilter)
+	);
+
+	const visiblePosts = $derived.by(() => {
+		const matched = hallFiltered.filter((post) => postMatchesSearch(post, search));
+		const list = [...matched];
+		if (sort === 'top') {
+			list.sort(
+				(a, b) => b.likeCount - a.likeCount || String(b.createdAt).localeCompare(String(a.createdAt))
+			);
+		} else if (sort === 'rated') {
+			list.sort(
+				(a, b) => b.rating - a.rating || b.likeCount - a.likeCount || String(b.createdAt).localeCompare(String(a.createdAt))
+			);
+		} else {
+			list.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+		}
+		return list;
+	});
 
 	const tagSuggestions = $derived.by(() => {
-		const all = foodTagCounts(feedPosts);
+		const all = foodTagCounts(hallFiltered);
 		const q = search.trim().toLowerCase();
 		if (!q) return all.slice(0, 10);
 		return all.filter((tag) => tag.name.toLowerCase().includes(q)).slice(0, 10);
@@ -128,6 +152,25 @@
 				class="block w-full rounded-md text-sm"
 			/>
 		</label>
+		<div class="mt-2 flex flex-wrap gap-2">
+			<label class="flex min-w-[8.5rem] flex-1 items-center gap-2 text-sm">
+				<span class="sr-only">Sort</span>
+				<select bind:value={sort} class="w-full rounded-md text-sm">
+					<option value="new">New</option>
+					<option value="top">Top</option>
+					<option value="rated">Top rated</option>
+				</select>
+			</label>
+			<label class="flex min-w-[8.5rem] flex-1 items-center gap-2 text-sm">
+				<span class="sr-only">Dining hall</span>
+				<select bind:value={hallFilter} class="w-full rounded-md text-sm">
+					<option value="all">All halls</option>
+					{#each data.halls ?? [] as hall (hall.id)}
+						<option value={hall.name}>{hall.name}</option>
+					{/each}
+				</select>
+			</label>
+		</div>
 		{#if tagSuggestions.length}
 			<p class="mt-2 flex flex-wrap gap-1.5">
 				{#each tagSuggestions as tag (tag.name)}
@@ -152,7 +195,7 @@
 			</p>
 		{:else}
 			<div class="mt-6 space-y-4">
-				{#if search.trim() && visiblePosts.length !== feedPosts.length}
+				{#if visiblePosts.length !== feedPosts.length}
 					<p class="text-sm" style="color:var(--text-muted)">
 						{visiblePosts.length} of {feedPosts.length} posts
 					</p>
@@ -167,7 +210,7 @@
 					/>
 				{/each}
 				{#if !visiblePosts.length}
-					<p class="text-sm" style="color:var(--text-muted)">No posts match that search.</p>
+					<p class="text-sm" style="color:var(--text-muted)">No posts match those filters.</p>
 				{/if}
 			</div>
 		{/if}
