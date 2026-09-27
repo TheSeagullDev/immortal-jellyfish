@@ -6,7 +6,24 @@ import {
 	isGatechEmail,
 	normalizeEmail
 } from '$lib/auth/email.js';
-import { createImplicitAuthClient } from '$lib/auth/implicit-client.js';
+
+/** @type {import('@supabase/supabase-js').EmailOtpType[]} */
+const RESET_OTP_TYPES = ['email', 'magiclink'];
+
+/**
+ * @param {import('@supabase/supabase-js').SupabaseClient} supabase
+ * @param {string} email
+ * @param {string} token
+ */
+async function verifyResetOtp(supabase, email, token) {
+	let lastError = /** @type {import('@supabase/supabase-js').AuthError | null} */ (null);
+	for (const type of RESET_OTP_TYPES) {
+		const { error } = await supabase.auth.verifyOtp({ email, token, type });
+		if (!error) return null;
+		lastError = error;
+	}
+	return lastError;
+}
 
 /** @type {import('./$types').PageServerLoad} */
 export const load = async ({ locals, url }) => {
@@ -16,8 +33,7 @@ export const load = async ({ locals, url }) => {
 	}
 
 	return {
-		registered: url.searchParams.get('registered') === '1',
-		magicSent: url.searchParams.get('magic') === '1'
+		registered: url.searchParams.get('registered') === '1'
 	};
 };
 
@@ -60,7 +76,7 @@ export const actions = {
 		throw redirect(303, '/');
 	},
 
-	magic: async ({ request, locals, url }) => {
+	reset: async ({ request, locals }) => {
 		const form = await request.formData();
 		const email = normalizeEmail(String(form.get('email') ?? ''));
 
@@ -68,31 +84,57 @@ export const actions = {
 			return fail(400, { resetEmail: email, error: gatechEmailErrorMessage() });
 		}
 
-		const callback = `${url.origin}/auth/callback`;
-		const { error } = await createImplicitAuthClient().auth.signInWithOtp({
+		const { error } = await locals.supabase.auth.signInWithOtp({
 			email,
 			options: {
-				// Do not create accounts here — signup owns profile + username.
-				shouldCreateUser: false,
-				emailRedirectTo: `${callback}?next=${encodeURIComponent('/settings?setPassword=1')}`
+				shouldCreateUser: false
 			}
 		});
 
-		if (error) {
-			// Unconfirmed signups are not eligible for magic link. Resend confirm instead
-			// ("Signups not allowed for otp" is GoTrue when the user is missing or unconfirmed).
-			const { error: resendError } = await locals.supabase.auth.resend({
-				type: 'signup',
-				email,
-				options: { emailRedirectTo: callback }
-			});
-			const expected =
-				/signups not allowed for otp|user not found|already confirmed|email not confirmed/i;
-			if (resendError && !expected.test(`${error.message} ${resendError.message}`)) {
-				console.error('magic link failed', error.message, resendError.message);
-			}
+		if (error && !/signups not allowed for otp|user not found/i.test(error.message)) {
+			console.error('reset otp failed', error.message);
 		}
 
-		throw redirect(303, '/login?magic=1');
+		return { otpSent: true, resetEmail: email };
+	},
+
+	verifyOtp: async ({ request, locals }) => {
+		const form = await request.formData();
+		const email = normalizeEmail(String(form.get('email') ?? ''));
+		const token = String(form.get('token') ?? '').replace(/\s/g, '');
+
+		if (!isGatechEmail(email)) {
+			return fail(400, { resetEmail: email, otpSent: true, error: gatechEmailErrorMessage() });
+		}
+
+		if (!token) {
+			return fail(400, {
+				resetEmail: email,
+				otpSent: true,
+				error: 'Enter the 6-digit code from your email.'
+			});
+		}
+
+		const error = await verifyResetOtp(locals.supabase, email, token);
+		if (error) {
+			console.error('verify reset otp failed', error.message);
+			return fail(400, {
+				resetEmail: email,
+				otpSent: true,
+				error: 'That code is invalid or expired.'
+			});
+		}
+
+		const { user } = await locals.safeGetSession();
+		if (!user) {
+			await locals.supabase.auth.signOut();
+			return fail(400, {
+				resetEmail: email,
+				otpSent: true,
+				error: emailUnverifiedMessage()
+			});
+		}
+
+		throw redirect(303, '/settings?setPassword=1');
 	}
 };

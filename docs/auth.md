@@ -19,9 +19,15 @@ In the Supabase dashboard:
    - Redirect URLs (include query strings via `**`):
      - `http://localhost:5173/auth/callback**`
      - `https://YOUR_PRODUCTION_HOST/auth/callback**`
-3. Email templates can keep `{{ .ConfirmationURL }}`. Magic/confirm emails are requested with the implicit flow so the link works from Gmail/Outlook (PKCE links only work in the same browser that asked for the email).
-   To skip the hash entirely, use:
-   `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type={{ .Type }}`
+3. **Authentication → Email Templates → Magic Link** — password reset uses a 6-digit code, not a click. Replace the body with:
+
+   ```html
+   <h2>Your MealWise code</h2>
+   <p>Enter this code in the app to reset your password. It expires shortly and can only be used once.</p>
+   <p style="font-size:24px;letter-spacing:4px"><strong>{{ .Token }}</strong></p>
+   ```
+
+   Signup confirmation can still use `{{ .ConfirmationURL }}` on the Confirm signup template.
 4. Optional for local demos: turn **off** “Confirm email” so signup signs you in immediately
 
 ## 3. Migrations
