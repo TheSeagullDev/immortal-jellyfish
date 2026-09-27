@@ -5,7 +5,15 @@
 	import StarRating from './StarRating.svelte';
 	import { formatRelativeTime } from './posts.js';
 
-	let { post, likeEnhance = undefined, showHeart = true } = $props();
+	let {
+		post,
+		likeEnhance = undefined,
+		showHeart = true,
+		currentUserId = ''
+	} = $props();
+
+	const canDelete = $derived(Boolean(currentUserId && post.authorId === currentUserId));
+	const comments = $derived(Array.isArray(post.comments) ? post.comments : []);
 </script>
 
 <article class="post-card overflow-hidden rounded-xl" style="background:var(--post-card)">
@@ -26,8 +34,29 @@
 				</p>
 			</div>
 		{/if}
-		<div class="shrink-0">
+		<div class="flex shrink-0 items-center gap-2">
 			<StarRating value={post.rating} />
+			{#if canDelete && showHeart}
+				<form
+					method="POST"
+					action="/?/deletePost"
+					use:enhance={() => async ({ result, update }) => {
+						if (result.type === 'success') await update();
+					}}
+				>
+					<input type="hidden" name="post_id" value={post.id} />
+					<button
+						type="submit"
+						class="text-xs font-semibold"
+						style="background:transparent;border:0;color:var(--text-muted);cursor:pointer"
+						onclick={(event) => {
+							if (!confirm('Delete this post?')) event.preventDefault();
+						}}
+					>
+						Delete
+					</button>
+				</form>
+			{/if}
 		</div>
 	</div>
 	{#if post.imageUrl}
@@ -83,5 +112,46 @@
 				</form>
 			{/if}
 		</div>
+
+		{#if showHeart}
+		<div class="space-y-2 pt-1">
+			{#each comments as comment (comment.id)}
+				<p class="text-sm leading-snug">
+					{#if comment.username}
+						<a href="/u/{comment.username}" class="font-medium">@{comment.username}</a>
+					{/if}
+					{comment.body}
+				</p>
+			{/each}
+			<form
+				method="POST"
+				action="/?/comment"
+				class="flex gap-2"
+				use:enhance={() => {
+					return async ({ result, update, formElement }) => {
+						await update();
+						if (result.type === 'success') formElement.reset();
+					};
+				}}
+			>
+				<input type="hidden" name="post_id" value={post.id} />
+				<input
+					type="text"
+					name="body"
+					maxlength="280"
+					required
+					placeholder="Add a comment…"
+					class="min-w-0 flex-1 rounded-md text-sm"
+				/>
+				<button
+					type="submit"
+					class="shrink-0 rounded-md px-2 py-1 text-xs font-semibold"
+					style="background:var(--primary);color:var(--on-primary)"
+				>
+					Post
+				</button>
+			</form>
+		</div>
+		{/if}
 	</div>
 </article>

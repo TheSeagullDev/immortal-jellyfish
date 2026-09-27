@@ -206,5 +206,69 @@ export const actions = {
 		if (error) {
 			return fail(400, { error: error.message });
 		}
+	},
+
+	comment: async ({ request, locals }) => {
+		const { user } = await locals.safeGetSession();
+		if (!user) {
+			return fail(401, { error: 'Sign in to comment.' });
+		}
+
+		const form = await request.formData();
+		const postId = String(form.get('post_id') ?? '');
+		const body = String(form.get('body') ?? '').trim();
+
+		if (!postId || !body) {
+			return fail(400, { error: 'Write a comment.' });
+		}
+		if (body.length > 280) {
+			return fail(400, { error: 'Keep comments under 280 characters.' });
+		}
+
+		const { error } = await locals.supabase.from('comments').insert({
+			post_id: postId,
+			author_id: user.id,
+			body
+		});
+
+		if (error) {
+			return fail(400, { error: error.message });
+		}
+	},
+
+	deletePost: async ({ request, locals }) => {
+		const { user } = await locals.safeGetSession();
+		if (!user) {
+			return fail(401, { error: 'Sign in to delete a post.' });
+		}
+
+		const form = await request.formData();
+		const postId = String(form.get('post_id') ?? '');
+		if (!postId) {
+			return fail(400, { error: 'Missing post.' });
+		}
+
+		const { data: post, error: lookupError } = await locals.supabase
+			.from('posts')
+			.select('id, image_path, author_id')
+			.eq('id', postId)
+			.maybeSingle();
+
+		if (lookupError) {
+			return fail(400, { error: lookupError.message });
+		}
+		if (!post || post.author_id !== user.id) {
+			return fail(403, { error: 'You can only delete your own posts.' });
+		}
+
+		const { error } = await locals.supabase.from('posts').delete().eq('id', postId).eq('author_id', user.id);
+		if (error) {
+			return fail(400, { error: error.message });
+		}
+
+		const imagePath = String(post.image_path ?? '');
+		if (imagePath && !imagePath.startsWith('/') && !imagePath.startsWith('http')) {
+			await locals.supabase.storage.from('food-images').remove([imagePath]);
+		}
 	}
 };
