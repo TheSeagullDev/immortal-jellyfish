@@ -35,7 +35,7 @@
 				style="background:var(--surface);color:var(--text)"
 				role="status"
 			>
-				Check your inbox.
+				If an account exists for that email, we sent a link.
 			</p>
 		{/if}
 

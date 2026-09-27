@@ -77,11 +77,6 @@ export const actions = {
 
 		if (error) {
 			console.error('magic link failed', error.message);
-			const missing = /signups not allowed|user not found|unable to find/i.test(error.message);
-			return fail(400, {
-				resetEmail: email,
-				error: missing ? 'No account with that email.' : error.message
-			});
 		}
 
 		throw redirect(303, '/login?magic=1');
