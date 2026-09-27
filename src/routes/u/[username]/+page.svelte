@@ -1,6 +1,6 @@
 <script>
 	import { enhance } from '$app/forms';
-	import { compressPhotoForUpload } from '$lib/compress-image-browser.js';
+	import { compressPhotoForUpload, PHOTO_TOO_LARGE_MESSAGE } from '$lib/compress-image-browser.js';
 	import PersonAvatar from '$lib/PersonAvatar.svelte';
 	import LoadedImage from '$lib/LoadedImage.svelte';
 	import PostCard from '$lib/PostCard.svelte';
@@ -8,6 +8,7 @@
 	let { data, form } = $props();
 
 	let localPreview = $state('');
+	let avatarError = $state('');
 	let editingIdentity = $state(false);
 	/** @type {string | null} */
 	let openedId = $state(null);
@@ -189,6 +190,7 @@
 		const file = input.files?.[0];
 		if (localPreview) URL.revokeObjectURL(localPreview);
 		localPreview = file ? URL.createObjectURL(file) : '';
+		avatarError = '';
 		if (file) input.form?.requestSubmit();
 	}
 
@@ -227,12 +229,16 @@
 						if (file instanceof File && file.size > 0) {
 							formData.set('avatar', await compressPhotoForUpload(file));
 						}
-					} catch (err) {
+					} catch {
 						cancel();
-						console.error(err);
+						avatarError = PHOTO_TOO_LARGE_MESSAGE;
 						return;
 					}
 					return async ({ result, update }) => {
+						if (result.type === 'error' || ('status' in result && result.status === 413)) {
+							avatarError = PHOTO_TOO_LARGE_MESSAGE;
+							return;
+						}
 						await update();
 						if (result.type === 'success' && localPreview) {
 							URL.revokeObjectURL(localPreview);
@@ -254,6 +260,11 @@
 					<span class="avatar-edit-overlay">Edit your profile photo</span>
 				</label>
 			</form>
+			{#if avatarError}
+				<p class="mb-3 rounded-md px-3 py-2 text-sm" style="background:color-mix(in srgb,#b42318 10%,var(--background));color:#8a1f16">
+					{avatarError}
+				</p>
+			{/if}
 		{:else}
 			<div class="mb-4">
 				<PersonAvatar src={avatarSrc} size="lg" />

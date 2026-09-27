@@ -1,8 +1,10 @@
 const MAX_EDGE = 1600;
 const MAX_BYTES = 1_200_000;
 const SKIP_UNDER_BYTES = 400_000;
-/** Vercel serverless request bodies cap around 4.5MB. */
-const HARD_LIMIT_BYTES = 4_000_000;
+/** Stay under Vercel’s ~4.5MB body cap, including multipart overhead. */
+const HARD_LIMIT_BYTES = 3_500_000;
+
+export const PHOTO_TOO_LARGE_MESSAGE = 'File too large, try a smaller image.';
 
 /**
  * Shrink a photo in the browser so the create/avatar POST fits on Vercel.
@@ -23,7 +25,7 @@ export async function compressPhotoForUpload(file) {
 			bitmap = await createImageBitmap(file);
 		} catch {
 			if (file.size > HARD_LIMIT_BYTES) {
-				throw new Error('That photo is too large to upload here. Try a smaller one.');
+				throw new Error(PHOTO_TOO_LARGE_MESSAGE);
 			}
 			return file;
 		}
@@ -40,7 +42,7 @@ export async function compressPhotoForUpload(file) {
 		const ctx = canvas.getContext('2d');
 		if (!ctx) {
 			if (file.size > HARD_LIMIT_BYTES) {
-				throw new Error('That photo is too large to upload here. Try a smaller one.');
+				throw new Error(PHOTO_TOO_LARGE_MESSAGE);
 			}
 			return file;
 		}
@@ -54,15 +56,19 @@ export async function compressPhotoForUpload(file) {
 		}
 		if (!blob) {
 			if (file.size > HARD_LIMIT_BYTES) {
-				throw new Error('That photo is too large to upload here. Try a smaller one.');
+				throw new Error(PHOTO_TOO_LARGE_MESSAGE);
 			}
 			return file;
 		}
 		if (blob.size > HARD_LIMIT_BYTES) {
-			throw new Error('That photo is still too large after compressing. Try a different shot.');
+			throw new Error(PHOTO_TOO_LARGE_MESSAGE);
 		}
 		const name = file.name.replace(/\.[^.]+$/, '') || 'photo';
-		return new File([blob], `${name}.jpg`, { type: 'image/jpeg' });
+		const next = new File([blob], `${name}.jpg`, { type: 'image/jpeg' });
+		if (next.size > HARD_LIMIT_BYTES) {
+			throw new Error(PHOTO_TOO_LARGE_MESSAGE);
+		}
+		return next;
 	} finally {
 		bitmap.close?.();
 	}
