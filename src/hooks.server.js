@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
+import { isEmailVerified } from '$lib/auth/email.js';
 
 /** @type {import('@sveltejs/kit').Handle} */
 export const handle = async ({ event, resolve }) => {
@@ -32,6 +33,11 @@ export const handle = async ({ event, resolve }) => {
 		} = await event.locals.supabase.auth.getUser();
 
 		if (error || !user) {
+			return { session: null, user: null };
+		}
+
+		if (!isEmailVerified(user)) {
+			await event.locals.supabase.auth.signOut();
 			return { session: null, user: null };
 		}
 

@@ -2,6 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import {
 	containsEmailAddress,
 	displayNameEmailErrorMessage,
+	isEmailVerified,
 	gatechEmailErrorMessage,
 	isGatechEmail,
 	normalizeEmail
@@ -93,10 +94,14 @@ export const actions = {
 			return fail(400, { name, username, email, error: message });
 		}
 
-		if (!data.session) {
-			throw redirect(303, '/login?registered=1');
+		if (isEmailVerified(data.user) && data.session) {
+			throw redirect(303, '/');
 		}
 
-		throw redirect(303, '/');
+		if (data.session) {
+			await locals.supabase.auth.signOut();
+		}
+
+		throw redirect(303, '/login?registered=1');
 	}
 };
