@@ -5,13 +5,34 @@
 	import ComposerFab from '$lib/ComposerFab.svelte';
 	import { syncDocumentTheme, watchSystemTheme } from '$lib/theme.js';
 	import { page } from '$app/state';
+	import { invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
 
 	let { data, children } = $props();
 
 	onMount(() => {
 		syncDocumentTheme();
-		return watchSystemTheme();
+		const unwatchTheme = watchSystemTheme();
+		let cancelled = false;
+
+		(async () => {
+			if (page.url.pathname === '/auth/callback') return;
+			const hash = window.location.hash.replace(/^#/, '');
+			if (!hash.includes('access_token')) return;
+			const params = new URLSearchParams(hash);
+			const access_token = params.get('access_token');
+			const refresh_token = params.get('refresh_token');
+			if (!access_token || !refresh_token) return;
+			const { error } = await data.supabase.auth.setSession({ access_token, refresh_token });
+			if (error || cancelled) return;
+			history.replaceState(null, '', window.location.pathname + window.location.search);
+			await invalidate('supabase:auth');
+		})();
+
+		return () => {
+			cancelled = true;
+			unwatchTheme();
+		};
 	});
 
 	const signedIn = $derived(Boolean(data.user || data.session));
