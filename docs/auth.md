@@ -14,10 +14,13 @@ Copy `.env.example` → `.env` and fill in:
 In the Supabase dashboard:
 
 1. **Authentication → Providers → Email** — enabled
-2. **URL configuration** — add your site URL and redirect:
-   - `http://localhost:5173/auth/callback`
-   - production callback when you deploy
-3. Optional for local demos: turn **off** “Confirm email” so signup signs you in immediately
+2. **URL configuration**
+   - Site URL: the app origin (`http://localhost:5173` or the Vercel URL)
+   - Redirect URLs (include query strings via `**`):
+     - `http://localhost:5173/auth/callback**`
+     - `https://YOUR_PRODUCTION_HOST/auth/callback**`
+3. Email templates can keep `{{ .ConfirmationURL }}`. That link lands on `/auth/callback` with tokens in the **hash** (`#access_token=…`). The app reads them in the browser. Do not 303-redirect before the page loads or the hash is dropped.
+4. Optional for local demos: turn **off** “Confirm email” so signup signs you in immediately
 
 ## 3. Migrations
 
