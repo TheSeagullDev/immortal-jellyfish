@@ -29,7 +29,7 @@
 				style="background:var(--surface);color:var(--text)"
 				role="status"
 			>
-				Check your inbox for a sign-in link. It opens Settings so you can set a new password.
+				Check your inbox.
 			</p>
 		{/if}
 
@@ -79,14 +79,11 @@
 			<button
 				type="submit"
 				formaction="?/magic"
-				class="w-full rounded-md px-4 py-2.5 text-sm font-semibold transition-opacity hover:opacity-80"
-				style="background:var(--surface);color:var(--text)"
+				class="w-full text-center text-sm font-semibold"
+				style="background:transparent;border:0;color:var(--primary);cursor:pointer"
 			>
-				Email me a sign-in link
+				Forgot password
 			</button>
-			<p class="text-center text-xs" style="color:var(--text-muted)">
-				Forgot your password? Use the sign-in link, then set a new one in Settings.
-			</p>
 		</form>
 
 		<p class="mt-6 text-center text-sm" style="color:var(--text-muted)">

@@ -69,7 +69,7 @@
 			style="background:var(--surface);color:var(--text)"
 			role="status"
 		>
-			Signed in with email. Choose a new password below.
+			Choose a new password below.
 		</p>
 	{/if}
 
