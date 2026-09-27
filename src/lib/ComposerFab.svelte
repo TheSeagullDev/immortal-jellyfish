@@ -1,6 +1,7 @@
 <script>
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
+	import { compressPhotoForUpload } from '$lib/compress-image-browser.js';
 	import LoadedImage from './LoadedImage.svelte';
 	import ReportFlag from './ReportFlag.svelte';
 	import StarRating from './StarRating.svelte';
@@ -12,6 +13,7 @@
 	let photoPreview = $state('');
 	let rating = $state(0);
 	let submitting = $state(false);
+	let clientError = $state('');
 
 	const form = $derived(page.form);
 
@@ -44,6 +46,7 @@
 		if (submitting) return;
 		composerOpen = false;
 		rating = 0;
+		clientError = '';
 		resetPhoto();
 	}
 
@@ -141,14 +144,14 @@
 					</button>
 				</div>
 
-				{#if form?.error}
+				{#if clientError || form?.error}
 					<div
 						class="mb-3 rounded-md px-3 py-2 text-sm"
 						style="background:color-mix(in srgb,#b42318 10%,var(--background));color:#8a1f16"
 						role="alert"
 					>
-						<p>{form.error}</p>
-						{#if form.reportKind}
+						<p>{clientError || form?.error}</p>
+						{#if !clientError && form?.reportKind}
 							<ReportFlag
 								kind={form.reportKind}
 								summary="User says this classification reject is incorrect"
@@ -169,9 +172,25 @@
 					enctype="multipart/form-data"
 					class="space-y-3"
 					aria-busy={submitting}
-					use:enhance={() => {
-						if (submitting) return;
+					use:enhance={async ({ formData, cancel }) => {
+						if (submitting) {
+							cancel();
+							return;
+						}
 						submitting = true;
+						clientError = '';
+						const file = formData.get('image');
+						try {
+							if (file instanceof File && file.size > 0) {
+								formData.set('image', await compressPhotoForUpload(file));
+							}
+						} catch (err) {
+							submitting = false;
+							clientError =
+								err instanceof Error ? err.message : 'Could not prepare that photo.';
+							cancel();
+							return;
+						}
 						return async ({ result, update }) => {
 							await update();
 							submitting = false;
