@@ -1,4 +1,5 @@
 <script>
+	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import LoadedImage from './LoadedImage.svelte';
 	import ReportFlag from './ReportFlag.svelte';
@@ -10,6 +11,7 @@
 	let photoName = $state('');
 	let photoPreview = $state('');
 	let rating = $state(0);
+	let submitting = $state(false);
 
 	const form = $derived(page.form);
 
@@ -39,6 +41,7 @@
 	}
 
 	function closeComposer() {
+		if (submitting) return;
 		composerOpen = false;
 		rating = 0;
 		resetPhoto();
@@ -74,7 +77,7 @@
 			position: fixed;
 			right: 1.25rem;
 			bottom: 1.25rem;
-			z-index: 2147483646;
+			z-index: 40;
 			display: grid;
 			place-items: center;
 			width: 3.5rem;
@@ -98,9 +101,9 @@
 			style="
 				position: fixed;
 				inset: 0;
-				z-index: 2147483645;
+				z-index: 50;
 				display: flex;
-				align-items: flex-end;
+				align-items: center;
 				justify-content: center;
 				padding: 1rem;
 			"
@@ -108,6 +111,7 @@
 			<button
 				type="button"
 				aria-label="Close new post"
+				disabled={submitting}
 				onclick={closeComposer}
 				style="
 					position: absolute;
@@ -121,15 +125,16 @@
 				role="dialog"
 				aria-modal="true"
 				aria-labelledby="new-post-title"
-				class="relative z-10 w-full max-w-md rounded-xl p-4"
-				style="background:var(--background)"
+				class="relative z-10 w-full max-w-md overflow-y-auto rounded-xl p-4"
+				style="background:var(--background);max-height:calc(100dvh - 2rem)"
 			>
 				<div class="mb-3 flex items-center justify-between">
 					<p id="new-post-title" class="text-sm font-semibold">New post</p>
 					<button
 						type="button"
-						class="rounded-md px-2 py-1 text-sm"
+						class="rounded-md px-2 py-1 text-sm disabled:opacity-50"
 						style="background:var(--surface);color:var(--text-muted)"
+						disabled={submitting}
 						onclick={closeComposer}
 					>
 						Close
@@ -158,7 +163,23 @@
 					</div>
 				{/if}
 
-				<form method="POST" action="/?/create" enctype="multipart/form-data" class="space-y-3">
+				<form
+					method="POST"
+					action="/?/create"
+					enctype="multipart/form-data"
+					class="space-y-3"
+					aria-busy={submitting}
+					use:enhance={() => {
+						if (submitting) return;
+						submitting = true;
+						return async ({ result, update }) => {
+							await update();
+							submitting = false;
+							if (result.type === 'success') closeComposer();
+						};
+					}}
+				>
+					<fieldset class="m-0 min-w-full space-y-3 border-0 p-0" disabled={submitting}>
 
 					<div class="block text-sm">
 						<span class="mb-1 block font-medium">Photo</span>
@@ -180,7 +201,7 @@
 							{photoName ? 'Change photo' : 'Choose photo'}
 						</label>
 						{#if photoPreview}
-							<div class="photo-frame mt-2 overflow-hidden rounded-md">
+							<div class="composer-preview mt-2 overflow-hidden rounded-md">
 								<LoadedImage src={photoPreview} class="h-full w-full object-contain" />
 							</div>
 						{/if}
@@ -256,12 +277,18 @@
 
 					<button
 						type="submit"
-						disabled={rating < 1}
-						class="w-full rounded-md px-4 py-2.5 text-sm font-semibold disabled:opacity-50"
+						disabled={rating < 1 || submitting}
+						class="inline-flex w-full items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold disabled:opacity-50"
 						style="background:var(--primary);color:var(--on-primary)"
 					>
-						Post
+						{#if submitting}
+							<span class="btn-spinner" aria-hidden="true"></span>
+							Posting…
+						{:else}
+							Post
+						{/if}
 					</button>
+					</fieldset>
 				</form>
 			</div>
 		</div>
