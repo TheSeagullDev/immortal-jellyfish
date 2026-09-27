@@ -20,7 +20,7 @@
 			: Math.round(Number(value) || 0)
 	);
 	const dim = $derived(size === 'sm' ? 18 : 22);
-	const activeFill = 'var(--star)';
+	const activeFill = 'var(--primary)';
 
 	/**
 	 * @param {number} n

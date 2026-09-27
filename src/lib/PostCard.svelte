@@ -8,7 +8,7 @@
 	let { post, likeEnhance = undefined, showHeart = true } = $props();
 </script>
 
-<article class="post-card overflow-hidden rounded-xl" style="background:var(--surface)">
+<article class="post-card overflow-hidden rounded-xl" style="background:var(--post-card)">
 	<div class="flex items-center justify-between gap-3 px-3 pt-3 pb-2">
 		{#if post.username}
 			<a href="/u/{post.username}" class="flex min-w-0 flex-1 items-center gap-2">
@@ -42,8 +42,8 @@
 				{#each post.foods as name}
 					<span
 						class="rounded-full px-2 py-0.5 text-xs"
-						style="background:var(--muted);color:var(--text-muted)"
-					>{name}</span>
+						style="background:var(--muted);color:var(--text-muted)">{name}</span
+					>
 				{/each}
 			</p>
 		{/if}
