@@ -27,6 +27,7 @@ export const actions = {
 		const username = normalizeUsername(String(form.get('username') ?? ''));
 		const email = normalizeEmail(String(form.get('email') ?? ''));
 		const password = String(form.get('password') ?? '');
+		const passwordConfirm = String(form.get('password_confirm') ?? '');
 
 		if (!name) {
 			return fail(400, { name, username, email, error: 'Name is required.' });
@@ -55,6 +56,15 @@ export const actions = {
 				username,
 				email,
 				error: 'Password must be at least 6 characters.'
+			});
+		}
+
+		if (password !== passwordConfirm) {
+			return fail(400, {
+				name,
+				username,
+				email,
+				error: 'Passwords do not match.'
 			});
 		}
 

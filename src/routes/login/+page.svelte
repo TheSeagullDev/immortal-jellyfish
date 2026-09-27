@@ -23,6 +23,16 @@
 			</p>
 		{/if}
 
+		{#if data.magicSent}
+			<p
+				class="mt-4 rounded-md px-3 py-2 text-sm"
+				style="background:var(--surface);color:var(--text)"
+				role="status"
+			>
+				Check your inbox.
+			</p>
+		{/if}
+
 		{#if form?.error}
 			<p
 				class="mt-4 rounded-md px-3 py-2 text-sm"
@@ -52,7 +62,6 @@
 				<input
 					type="password"
 					name="password"
-					required
 					minlength="6"
 					autocomplete="current-password"
 					placeholder="********"
@@ -66,6 +75,14 @@
 				style="background:var(--primary);color:var(--on-primary)"
 			>
 				Sign in
+			</button>
+			<button
+				type="submit"
+				formaction="?/magic"
+				class="w-full text-center text-sm font-semibold"
+				style="background:transparent;border:0;color:var(--primary);cursor:pointer"
+			>
+				Forgot password
 			</button>
 		</form>
 
