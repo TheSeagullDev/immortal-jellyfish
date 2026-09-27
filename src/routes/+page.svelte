@@ -2,6 +2,7 @@
 	import PostCard from '$lib/PostCard.svelte';
 	import LoadedImage from '$lib/LoadedImage.svelte';
 	import StarRating from '$lib/StarRating.svelte';
+	import { foodTagCounts, foodTagIsActive, postMatchesSearch } from '$lib/posts.js';
 	import logo from '$lib/assets/logo.png';
 
 	let { data } = $props();
@@ -15,6 +16,24 @@
 			return over ? { ...post, liked: over.liked, likeCount: over.likeCount } : post;
 		})
 	);
+
+	let search = $state('');
+
+	const visiblePosts = $derived(feedPosts.filter((post) => postMatchesSearch(post, search)));
+
+	const tagSuggestions = $derived.by(() => {
+		const all = foodTagCounts(feedPosts);
+		const q = search.trim().toLowerCase();
+		if (!q) return all.slice(0, 10);
+		return all.filter((tag) => tag.name.toLowerCase().includes(q)).slice(0, 10);
+	});
+
+	/**
+	 * @param {string} name
+	 */
+	function useFoodTag(name) {
+		search = name;
+	}
 
 	/**
 	 * @param {any} post
@@ -100,15 +119,56 @@
 	<div class="mx-auto max-w-3xl px-4 py-6 pb-24">
 		<h1 class="text-2xl font-bold tracking-tight" style="color:var(--text)">Feed</h1>
 
+		<label class="mt-4 block">
+			<span class="sr-only">Search the feed</span>
+			<input
+				type="search"
+				bind:value={search}
+				placeholder="Food, hall, @user, caption…"
+				class="block w-full rounded-md text-sm"
+			/>
+		</label>
+		{#if tagSuggestions.length}
+			<p class="mt-2 flex flex-wrap gap-1.5">
+				{#each tagSuggestions as tag (tag.name)}
+					<button
+						type="button"
+						class="rounded-full px-2.5 py-1 text-xs font-medium"
+						style={foodTagIsActive(tag.name, search)
+							? 'background:var(--primary);color:var(--on-primary);border:0;cursor:pointer'
+							: 'background:var(--surface);color:var(--text);border:0;cursor:pointer'}
+						onclick={() => useFoodTag(tag.name)}
+					>
+						{tag.name}
+						<span style="opacity:0.7">{tag.count}</span>
+					</button>
+				{/each}
+			</p>
+		{/if}
+
 		{#if data.feedError}
 			<p class="mt-4 rounded-md px-3 py-2 text-sm" style="background:color-mix(in srgb,#b42318 10%,var(--background));color:#8a1f16">
 				{data.feedError}
 			</p>
 		{:else}
 			<div class="mt-6 space-y-4">
-				{#each feedPosts as post (post.id)}
-					<PostCard {post} {likeEnhance} currentUserId={data.user.id} />
+				{#if search.trim() && visiblePosts.length !== feedPosts.length}
+					<p class="text-sm" style="color:var(--text-muted)">
+						{visiblePosts.length} of {feedPosts.length} posts
+					</p>
+				{/if}
+				{#each visiblePosts as post (post.id)}
+					<PostCard
+						{post}
+						{likeEnhance}
+						currentUserId={data.user.id}
+						searchQuery={search}
+						onFoodTag={useFoodTag}
+					/>
 				{/each}
+				{#if !visiblePosts.length}
+					<p class="text-sm" style="color:var(--text-muted)">No posts match that search.</p>
+				{/if}
 			</div>
 		{/if}
 	</div>

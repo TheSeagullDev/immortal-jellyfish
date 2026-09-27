@@ -119,3 +119,72 @@ export async function mapPosts(supabase, rows, userId = null) {
 		avatarUrl: urls[post.username] || ''
 	}));
 }
+
+/**
+ * @param {unknown} raw
+ */
+export function normalizeSearch(raw) {
+	return String(raw ?? '')
+		.trim()
+		.toLowerCase();
+}
+
+/**
+ * @param {{ caption?: string, hallName?: string, username?: string, authorName?: string, foods?: string[], comments?: { body?: string, username?: string }[] }} post
+ */
+export function postSearchHaystack(post) {
+	const foods = Array.isArray(post.foods) ? post.foods : [];
+	const comments = Array.isArray(post.comments) ? post.comments : [];
+	return [
+		post.caption,
+		post.hallName,
+		post.username,
+		post.authorName,
+		...foods,
+		...comments.map((comment) => `${comment.username ?? ''} ${comment.body ?? ''}`)
+	]
+		.join('\n')
+		.toLowerCase();
+}
+
+/**
+ * @param {Parameters<typeof postSearchHaystack>[0]} post
+ * @param {unknown} raw
+ */
+export function postMatchesSearch(post, raw) {
+	const query = normalizeSearch(raw);
+	if (!query) return true;
+	const haystack = postSearchHaystack(post);
+	return query.split(/\s+/).every((token) => haystack.includes(token));
+}
+
+/**
+ * @param {{ foods?: string[] }[]} posts
+ * @returns {{ name: string, count: number }[]}
+ */
+export function foodTagCounts(posts) {
+	/** @type {Map<string, number>} */
+	const counts = new Map();
+	for (const post of posts) {
+		for (const name of post.foods ?? []) {
+			if (typeof name !== 'string') continue;
+			const trimmed = name.trim();
+			if (!trimmed) continue;
+			counts.set(trimmed, (counts.get(trimmed) ?? 0) + 1);
+		}
+	}
+	return [...counts.entries()]
+		.map(([name, count]) => ({ name, count }))
+		.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+}
+
+/**
+ * @param {string} tag
+ * @param {unknown} raw
+ */
+export function foodTagIsActive(tag, raw) {
+	const query = normalizeSearch(raw);
+	if (!query) return false;
+	const lower = tag.toLowerCase();
+	return query.split(/\s+/).some((token) => lower.includes(token));
+}
