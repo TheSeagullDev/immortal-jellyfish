@@ -1,6 +1,6 @@
 <script>
 	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
+	import logo from '$lib/assets/logo.png';
 	import AccountMenu from '$lib/AccountMenu.svelte';
 	import ComposerFab from '$lib/ComposerFab.svelte';
 	import { syncDocumentTheme, watchSystemTheme } from '$lib/theme.js';
@@ -22,7 +22,9 @@
 	});
 </script>
 
-<svelte:head><link rel="icon" href={favicon} /></svelte:head>
+<svelte:head>
+	<link rel="icon" type="image/png" href={logo} />
+</svelte:head>
 
 <div
 	class="min-h-dvh"
@@ -38,8 +40,9 @@
 		<div class="app-col">
 			<div class="flex items-center justify-between gap-4 py-4">
 				<div class="flex items-center gap-8">
-					<a href="/" class="text-xl font-bold tracking-tight" style="color:var(--text)">
-						Meal<span style="color:var(--primary)">Wise</span>
+					<a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight" style="color:var(--text)">
+						<img src={logo} alt="" width="32" height="30" class="h-8 w-8 object-contain" />
+						<span>Meal<span style="color:var(--primary)">Wise</span></span>
 					</a>
 				</div>
 				<nav class="flex items-center gap-3 text-sm">

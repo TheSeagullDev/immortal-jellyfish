@@ -20,7 +20,7 @@
 			: Math.round(Number(value) || 0)
 	);
 	const dim = $derived(size === 'sm' ? 18 : 22);
-	const activeFill = 'var(--primary)';
+	const activeFill = 'var(--star)';
 
 	/**
 	 * @param {number} n
@@ -32,7 +32,7 @@
 </script>
 
 <div
-	class="relative z-20 inline-flex items-center"
+	class="inline-flex items-center {interactive ? 'relative z-20' : ''}"
 	style="gap: 2px; cursor: {interactive ? 'pointer' : 'default'}"
 	role={interactive ? 'radiogroup' : 'img'}
 	aria-label="{filled} out of 5 stars"

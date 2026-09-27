@@ -2,6 +2,7 @@
 	import PostCard from '$lib/PostCard.svelte';
 	import LoadedImage from '$lib/LoadedImage.svelte';
 	import StarRating from '$lib/StarRating.svelte';
+	import logo from '$lib/assets/logo.png';
 
 	let { data } = $props();
 
@@ -108,6 +109,14 @@
 		>
 			GT Dining · Ranked by you
 		</span>
+
+		<img
+			src={logo}
+			alt=""
+			width="128"
+			height="119"
+			class="mx-auto mt-6 h-24 w-24 object-contain sm:h-32 sm:w-32"
+		/>
 
 		<h1 class="mt-4 text-4xl font-extrabold tracking-tight sm:text-6xl" style="color:var(--text)">
 			Meal<span style="color:var(--primary)">Wise</span>

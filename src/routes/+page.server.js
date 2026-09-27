@@ -1,5 +1,10 @@
 import { fail } from '@sveltejs/kit';
+import { classifyPlate } from '$lib/classify-food.js';
+import { compressImage } from '$lib/compress-image.js';
+import { IMAGE_CACHE_CONTROL } from '$lib/food-images.js';
+import { fetchTodayFoods, menuWhen } from '$lib/nutrislice.js';
 import { mapPosts, postsSelect } from '$lib/posts.js';
+import { handleReportAction } from '$lib/report.js';
 
 /** @type {import('./$types').PageServerLoad} */
 export const load = async ({ locals }) => {
@@ -8,10 +13,11 @@ export const load = async ({ locals }) => {
 		return { posts: [], halls: [] };
 	}
 
-	const [{ data: halls, error: hallsError }, { data: postRows, error: postsError }] = await Promise.all([
-		locals.supabase.from('dining_halls').select('id, name, slug').order('name'),
-		locals.supabase.from('posts').select(postsSelect).order('created_at', { ascending: false })
-	]);
+	const [{ data: halls, error: hallsError }, { data: postRows, error: postsError }] =
+		await Promise.all([
+			locals.supabase.from('dining_halls').select('id, name, slug').order('name'),
+			locals.supabase.from('posts').select(postsSelect).order('created_at', { ascending: false })
+		]);
 
 	if (hallsError || postsError) {
 		const message = hallsError?.message ?? postsError?.message;
@@ -37,34 +43,104 @@ export const actions = {
 		const caption = String(form.get('caption') ?? '').trim();
 		const hallId = String(form.get('dining_hall_id') ?? '');
 		const rating = Number(form.get('rating'));
+		const menuDate = String(form.get('menu_date') ?? '').trim();
+		const menuTime = String(form.get('menu_time') ?? '').trim();
 		const image = form.get('image');
 
 		if (!caption) {
-			return fail(400, { caption, hallId, rating, error: 'Caption is required.' });
+			return fail(400, {
+				caption,
+				hallId,
+				rating,
+				menuDate,
+				menuTime,
+				error: 'Caption is required.'
+			});
 		}
 		if (!hallId) {
-			return fail(400, { caption, hallId, rating, error: 'Pick a dining hall.' });
+			return fail(400, {
+				caption,
+				hallId,
+				rating,
+				menuDate,
+				menuTime,
+				error: 'Pick a dining hall.'
+			});
 		}
 		if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
-			return fail(400, { caption, hallId, rating, error: 'Rating must be 1–5.' });
+			return fail(400, {
+				caption,
+				hallId,
+				rating,
+				menuDate,
+				menuTime,
+				error: 'Rating must be 1–5.'
+			});
 		}
 		if (!(image instanceof File) || image.size === 0) {
-			return fail(400, { caption, hallId, rating, error: 'Add a photo.' });
+			return fail(400, { caption, hallId, rating, menuDate, menuTime, error: 'Add a photo.' });
+		}
+
+		const { data: hall } = await locals.supabase
+			.from('dining_halls')
+			.select('slug')
+			.eq('id', hallId)
+			.maybeSingle();
+
+		const { isoDate, meals } = menuWhen(menuDate, menuTime);
+		const menu = await fetchTodayFoods(hall?.slug, isoDate, meals);
+		console.log('[classify] menu', {
+			hall: hall?.slug,
+			date: menu.date,
+			meals,
+			itemCount: menu.foods.length,
+			errors: menu.errors
+		});
+		const originalBytes = new Uint8Array(await image.arrayBuffer());
+		const prepared = await compressImage(originalBytes, image.type || 'image/jpeg', {
+			maxEdge: 1600
+		});
+		let foods = [];
+
+		try {
+			const classified = await classifyPlate({
+				bytes: prepared.bytes,
+				mimeType: prepared.contentType,
+				menu: menu.foods
+			});
+
+			if (!classified.skipped && !classified.isFood) {
+				console.log('[classify] rejected', classified.rejectReason);
+				return fail(400, {
+					caption,
+					hallId,
+					rating,
+					menuDate,
+					menuTime,
+					error: "That doesn't look like a dining-hall meal. Post a photo of your plate.",
+					reportKind: 'classification'
+				});
+			}
+
+			foods = classified.matches.map((match) => match.name);
+		} catch (err) {
+			console.error('plate classify failed', err);
+			// Don't block posting if Gemini / Nutrislice is down.
 		}
 
 		const postId = crypto.randomUUID();
-		const ext = image.name.includes('.') ? image.name.split('.').pop()?.toLowerCase() : 'jpg';
-		const imagePath = `${user.id}/${postId}.${ext || 'jpg'}`;
+		const imagePath = `${user.id}/${postId}.${prepared.ext}`;
 
 		const { error: uploadError } = await locals.supabase.storage
 			.from('food-images')
-			.upload(imagePath, image, {
-				contentType: image.type || 'image/jpeg',
+			.upload(imagePath, prepared.bytes, {
+				contentType: prepared.contentType,
+				cacheControl: IMAGE_CACHE_CONTROL,
 				upsert: false
 			});
 
 		if (uploadError) {
-			return fail(400, { caption, hallId, rating, error: uploadError.message });
+			return fail(400, { caption, hallId, rating, menuDate, menuTime, error: uploadError.message });
 		}
 
 		const { error: insertError } = await locals.supabase.from('posts').insert({
@@ -73,16 +149,19 @@ export const actions = {
 			dining_hall_id: hallId,
 			image_path: imagePath,
 			caption,
-			rating
+			rating,
+			foods
 		});
 
 		if (insertError) {
 			await locals.supabase.storage.from('food-images').remove([imagePath]);
-			return fail(400, { caption, hallId, rating, error: insertError.message });
+			return fail(400, { caption, hallId, rating, menuDate, menuTime, error: insertError.message });
 		}
 
 		return { posted: true };
 	},
+
+	report: handleReportAction,
 
 	like: async ({ request, locals }) => {
 		const { user } = await locals.safeGetSession();
