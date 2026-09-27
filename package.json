@@ -7,6 +7,8 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
+		"test": "node --test src/**/*.test.js",
+		"check:egress": "node scripts/probe-storage-cdn.js",
 		"prepare": "svelte-kit sync || echo ''",
 		"lint": "prettier --check .",
 		"format": "prettier --write ."
@@ -28,6 +30,7 @@
 	},
 	"dependencies": {
 		"@supabase/ssr": "0.12.7",
-		"@supabase/supabase-js": "2.114.0"
+		"@supabase/supabase-js": "2.114.0",
+		"sharp": "^0.35.4"
 	}
 }
