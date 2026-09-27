@@ -1,5 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import { classifyPlate } from '$lib/classify-food.js';
+import { compressImage } from '$lib/compress-image.js';
+import { IMAGE_CACHE_CONTROL } from '$lib/food-images.js';
 import { fetchTodayFoods, menuWhen } from '$lib/nutrislice.js';
 import { mapPosts, postsSelect } from '$lib/posts.js';
 import { handleReportAction } from '$lib/report.js';
@@ -11,10 +13,11 @@ export const load = async ({ locals }) => {
 		return { posts: [], halls: [] };
 	}
 
-	const [{ data: halls, error: hallsError }, { data: postRows, error: postsError }] = await Promise.all([
-		locals.supabase.from('dining_halls').select('id, name, slug').order('name'),
-		locals.supabase.from('posts').select(postsSelect).order('created_at', { ascending: false })
-	]);
+	const [{ data: halls, error: hallsError }, { data: postRows, error: postsError }] =
+		await Promise.all([
+			locals.supabase.from('dining_halls').select('id, name, slug').order('name'),
+			locals.supabase.from('posts').select(postsSelect).order('created_at', { ascending: false })
+		]);
 
 	if (hallsError || postsError) {
 		const message = hallsError?.message ?? postsError?.message;
@@ -45,13 +48,34 @@ export const actions = {
 		const image = form.get('image');
 
 		if (!caption) {
-			return fail(400, { caption, hallId, rating, menuDate, menuTime, error: 'Caption is required.' });
+			return fail(400, {
+				caption,
+				hallId,
+				rating,
+				menuDate,
+				menuTime,
+				error: 'Caption is required.'
+			});
 		}
 		if (!hallId) {
-			return fail(400, { caption, hallId, rating, menuDate, menuTime, error: 'Pick a dining hall.' });
+			return fail(400, {
+				caption,
+				hallId,
+				rating,
+				menuDate,
+				menuTime,
+				error: 'Pick a dining hall.'
+			});
 		}
 		if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
-			return fail(400, { caption, hallId, rating, menuDate, menuTime, error: 'Rating must be 1–5.' });
+			return fail(400, {
+				caption,
+				hallId,
+				rating,
+				menuDate,
+				menuTime,
+				error: 'Rating must be 1–5.'
+			});
 		}
 		if (!(image instanceof File) || image.size === 0) {
 			return fail(400, { caption, hallId, rating, menuDate, menuTime, error: 'Add a photo.' });
@@ -72,13 +96,16 @@ export const actions = {
 			itemCount: menu.foods.length,
 			errors: menu.errors
 		});
-		const imageBytes = new Uint8Array(await image.arrayBuffer());
+		const originalBytes = new Uint8Array(await image.arrayBuffer());
+		const prepared = await compressImage(originalBytes, image.type || 'image/jpeg', {
+			maxEdge: 1600
+		});
 		let foods = [];
 
 		try {
 			const classified = await classifyPlate({
-				bytes: imageBytes,
-				mimeType: image.type || 'image/jpeg',
+				bytes: prepared.bytes,
+				mimeType: prepared.contentType,
 				menu: menu.foods
 			});
 
@@ -102,13 +129,13 @@ export const actions = {
 		}
 
 		const postId = crypto.randomUUID();
-		const ext = image.name.includes('.') ? image.name.split('.').pop()?.toLowerCase() : 'jpg';
-		const imagePath = `${user.id}/${postId}.${ext || 'jpg'}`;
+		const imagePath = `${user.id}/${postId}.${prepared.ext}`;
 
 		const { error: uploadError } = await locals.supabase.storage
 			.from('food-images')
-			.upload(imagePath, imageBytes, {
-				contentType: image.type || 'image/jpeg',
+			.upload(imagePath, prepared.bytes, {
+				contentType: prepared.contentType,
+				cacheControl: IMAGE_CACHE_CONTROL,
 				upsert: false
 			});
 
