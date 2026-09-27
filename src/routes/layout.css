@@ -47,7 +47,19 @@
 		border: none;
 		background-color: var(--surface);
 		color: var(--text);
+		color-scheme: inherit;
 		box-shadow: none;
+	}
+
+	html.dark select {
+		color-scheme: dark;
+		background-color: var(--background);
+		color: var(--text);
+	}
+
+	html.dark select option {
+		background-color: var(--background);
+		color: var(--text);
 	}
 
 	input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']):focus,
