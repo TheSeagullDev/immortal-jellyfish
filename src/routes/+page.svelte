@@ -6,27 +6,39 @@
 
 	let { data } = $props();
 
-	let feedPosts = $state(/** @type {any[]} */ ([]));
+	/** @type {Record<string, { liked: boolean, likeCount: number }>} */
+	let likeOverrides = $state({});
 
-	$effect(() => {
-		feedPosts = (data.posts ?? []).map((post) => ({ ...post }));
-	});
+	const feedPosts = $derived(
+		(data.posts ?? []).map((post) => {
+			const over = likeOverrides[post.id];
+			return over ? { ...post, liked: over.liked, likeCount: over.likeCount } : post;
+		})
+	);
 
 	/**
 	 * @param {any} post
 	 */
 	function likeEnhance(post) {
 		return () => {
-			const prevLiked = post.liked;
-			const prevCount = post.likeCount;
-			post.liked = !post.liked;
-			post.likeCount += post.liked ? 1 : -1;
+			const shown = likeOverrides[post.id] ?? { liked: post.liked, likeCount: post.likeCount };
+			const liked = !shown.liked;
+			likeOverrides = {
+				...likeOverrides,
+				[post.id]: { liked, likeCount: shown.likeCount + (liked ? 1 : -1) }
+			};
 
-			return async ({ result }) => {
+			return async ({ result, update }) => {
 				if (result.type === 'failure' || result.type === 'error') {
-					post.liked = prevLiked;
-					post.likeCount = prevCount;
+					const next = { ...likeOverrides };
+					delete next[post.id];
+					likeOverrides = next;
+					return;
 				}
+				await update();
+				const next = { ...likeOverrides };
+				delete next[post.id];
+				likeOverrides = next;
 			};
 		};
 	}
