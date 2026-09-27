@@ -32,7 +32,7 @@
 </script>
 
 <div
-	class="relative z-20 inline-flex items-center"
+	class="inline-flex items-center {interactive ? 'relative z-20' : ''}"
 	style="gap: 2px; cursor: {interactive ? 'pointer' : 'default'}"
 	role={interactive ? 'radiogroup' : 'img'}
 	aria-label="{filled} out of 5 stars"
