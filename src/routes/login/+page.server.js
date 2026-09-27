@@ -67,16 +67,29 @@ export const actions = {
 			return fail(400, { resetEmail: email, error: gatechEmailErrorMessage() });
 		}
 
+		const callback = `${url.origin}/auth/callback`;
 		const { error } = await locals.supabase.auth.signInWithOtp({
 			email,
 			options: {
+				// Do not create accounts here — signup owns profile + username.
 				shouldCreateUser: false,
-				emailRedirectTo: `${url.origin}/auth/callback?next=${encodeURIComponent('/settings?setPassword=1')}`
+				emailRedirectTo: `${callback}?next=${encodeURIComponent('/settings?setPassword=1')}`
 			}
 		});
 
 		if (error) {
-			console.error('magic link failed', error.message);
+			// Unconfirmed signups are not eligible for magic link. Resend confirm instead
+			// ("Signups not allowed for otp" is GoTrue when the user is missing or unconfirmed).
+			const { error: resendError } = await locals.supabase.auth.resend({
+				type: 'signup',
+				email,
+				options: { emailRedirectTo: callback }
+			});
+			const expected =
+				/signups not allowed for otp|user not found|already confirmed|email not confirmed/i;
+			if (resendError && !expected.test(`${error.message} ${resendError.message}`)) {
+				console.error('magic link failed', error.message, resendError.message);
+			}
 		}
 
 		throw redirect(303, '/login?magic=1');
