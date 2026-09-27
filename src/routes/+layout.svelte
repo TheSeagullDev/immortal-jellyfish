@@ -3,9 +3,16 @@
 	import logo from '$lib/assets/logo.png';
 	import AccountMenu from '$lib/AccountMenu.svelte';
 	import ComposerFab from '$lib/ComposerFab.svelte';
+	import { syncDocumentTheme, watchSystemTheme } from '$lib/theme.js';
 	import { page } from '$app/state';
+	import { onMount } from 'svelte';
 
 	let { data, children } = $props();
+
+	onMount(() => {
+		syncDocumentTheme();
+		return watchSystemTheme();
+	});
 
 	const signedIn = $derived(Boolean(data.user || data.session));
 	const showComposerFab = $derived.by(() => {
@@ -60,5 +67,5 @@
 	</main>
 </div>
 {#if showComposerFab}
-	<ComposerFab halls={data.halls ?? []} signedIn={signedIn} />
+	<ComposerFab halls={data.halls ?? []} {signedIn} />
 {/if}
