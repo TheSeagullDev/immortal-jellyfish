@@ -32,3 +32,14 @@ export function containsEmailAddress(value) {
 export function displayNameEmailErrorMessage() {
 	return "Name can't include an email ending like @gmail.com or @gatech.edu.";
 }
+
+/**
+ * @param {{ email_confirmed_at?: string | null } | null | undefined} user
+ */
+export function isEmailVerified(user) {
+	return Boolean(user?.email_confirmed_at);
+}
+
+export function emailUnverifiedMessage() {
+	return 'Confirm your Georgia Tech email before signing in. Check your inbox for the link.';
+}
