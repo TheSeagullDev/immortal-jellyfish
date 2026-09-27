@@ -1,5 +1,6 @@
 <script>
 	import { enhance } from '$app/forms';
+	import { compressPhotoForUpload } from '$lib/compress-image-browser.js';
 	import PersonAvatar from '$lib/PersonAvatar.svelte';
 	import LoadedImage from '$lib/LoadedImage.svelte';
 	import PostCard from '$lib/PostCard.svelte';
@@ -220,7 +221,17 @@
 				action="?/avatar"
 				enctype="multipart/form-data"
 				class="mb-4 w-fit"
-				use:enhance={() => {
+				use:enhance={async ({ formData, cancel }) => {
+					const file = formData.get('avatar');
+					try {
+						if (file instanceof File && file.size > 0) {
+							formData.set('avatar', await compressPhotoForUpload(file));
+						}
+					} catch (err) {
+						cancel();
+						console.error(err);
+						return;
+					}
 					return async ({ result, update }) => {
 						await update();
 						if (result.type === 'success' && localPreview) {
