@@ -10,14 +10,20 @@
 		const access_token = params.get('access_token');
 		const refresh_token = params.get('refresh_token');
 
-		if (!access_token || !refresh_token) {
-			goto('/login', { replaceState: true });
-			return;
+		if (access_token && refresh_token) {
+			const { error } = await data.supabase.auth.setSession({ access_token, refresh_token });
+			if (error) {
+				console.error('setSession from email link failed', error);
+				goto('/login', { replaceState: true });
+				return;
+			}
 		}
 
-		const { error } = await data.supabase.auth.setSession({ access_token, refresh_token });
-		if (error) {
-			console.error('setSession from email link failed', error);
+		const {
+			data: { session }
+		} = await data.supabase.auth.getSession();
+
+		if (!session) {
 			goto('/login', { replaceState: true });
 			return;
 		}

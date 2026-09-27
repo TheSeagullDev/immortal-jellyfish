@@ -19,7 +19,9 @@ In the Supabase dashboard:
    - Redirect URLs (include query strings via `**`):
      - `http://localhost:5173/auth/callback**`
      - `https://YOUR_PRODUCTION_HOST/auth/callback**`
-3. Email templates can keep `{{ .ConfirmationURL }}`. That link lands on `/auth/callback` with tokens in the **hash** (`#access_token=…`). The app reads them in the browser. Do not 303-redirect before the page loads or the hash is dropped.
+3. Email templates can keep `{{ .ConfirmationURL }}`. Magic/confirm emails are requested with the implicit flow so the link works from Gmail/Outlook (PKCE links only work in the same browser that asked for the email).
+   To skip the hash entirely, use:
+   `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type={{ .Type }}`
 4. Optional for local demos: turn **off** “Confirm email” so signup signs you in immediately
 
 ## 3. Migrations

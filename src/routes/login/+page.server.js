@@ -6,6 +6,7 @@ import {
 	isGatechEmail,
 	normalizeEmail
 } from '$lib/auth/email.js';
+import { createImplicitAuthClient } from '$lib/auth/implicit-client.js';
 
 /** @type {import('./$types').PageServerLoad} */
 export const load = async ({ locals, url }) => {
@@ -68,7 +69,7 @@ export const actions = {
 		}
 
 		const callback = `${url.origin}/auth/callback`;
-		const { error } = await locals.supabase.auth.signInWithOtp({
+		const { error } = await createImplicitAuthClient().auth.signInWithOtp({
 			email,
 			options: {
 				// Do not create accounts here — signup owns profile + username.

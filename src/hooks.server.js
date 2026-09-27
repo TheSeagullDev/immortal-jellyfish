@@ -1,9 +1,16 @@
+import { redirect } from '@sveltejs/kit';
 import { createServerClient } from '@supabase/ssr';
 import { PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { isEmailVerified } from '$lib/auth/email.js';
+import { authCallbackRedirectPath } from '$lib/auth/redirect.js';
 
 /** @type {import('@sveltejs/kit').Handle} */
 export const handle = async ({ event, resolve }) => {
+	const bounce = authCallbackRedirectPath(event.url);
+	if (bounce) {
+		throw redirect(303, bounce);
+	}
+
 	event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
 		cookies: {
 			getAll: () => event.cookies.getAll(),
