@@ -47,7 +47,19 @@
 		border: none;
 		background-color: var(--surface);
 		color: var(--text);
+		color-scheme: inherit;
 		box-shadow: none;
+	}
+
+	html.dark select {
+		color-scheme: dark;
+		background-color: var(--background);
+		color: var(--text);
+	}
+
+	html.dark select option {
+		background-color: var(--background);
+		color: var(--text);
 	}
 
 	input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']):focus,
@@ -82,6 +94,16 @@ html.dark .edit-field {
 .edit-field option {
 	background-color: var(--background);
 	color: var(--text);
+}
+
+input.comment-field {
+	border: 1px solid var(--muted);
+	background-color: var(--background);
+	color: var(--text);
+	box-shadow: none;
+}
+html.dark input.comment-field {
+	border-color: color-mix(in srgb, var(--text) 32%, var(--muted));
 }
 
 /* Hand pointer on links and clickable controls (overrides UA / forms default arrow). */

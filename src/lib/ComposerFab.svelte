@@ -215,114 +215,122 @@
 					}}
 				>
 					<fieldset class="m-0 min-w-full space-y-3 border-0 p-0" disabled={submitting}>
+						<div class="block text-sm">
+							<span class="mb-1 block font-medium">Photo</span>
+							<input
+								id="new-post-photo"
+								type="file"
+								name="image"
+								accept="image/*"
+								capture="environment"
+								required
+								class="sr-only"
+								onchange={onPhotoChange}
+							/>
+							<label
+								for="new-post-photo"
+								class="flex cursor-pointer items-center justify-center rounded-md px-4 py-3 text-sm font-semibold transition-opacity hover:opacity-80"
+								style="background:var(--surface);color:var(--primary)"
+							>
+								{photoName ? 'Change photo' : 'Choose photo'}
+							</label>
+							{#if photoPreview}
+								<div class="composer-preview mt-2 overflow-hidden rounded-md">
+									<LoadedImage src={photoPreview} class="h-full w-full object-contain" />
+								</div>
+							{/if}
+							{#if photoName}
+								<p class="mt-1.5 truncate text-xs" style="color:var(--text-muted)">{photoName}</p>
+							{:else}
+								<p class="mt-1.5 text-xs" style="color:var(--text-muted)">
+									JPG or PNG from your camera roll
+								</p>
+							{/if}
+						</div>
 
-					<div class="block text-sm">
-						<span class="mb-1 block font-medium">Photo</span>
-						<input
-							id="new-post-photo"
-							type="file"
-							name="image"
-							accept="image/*"
-							capture="environment"
-							required
-							class="sr-only"
-							onchange={onPhotoChange}
-						/>
-						<label
-							for="new-post-photo"
-							class="flex cursor-pointer items-center justify-center rounded-md px-4 py-3 text-sm font-semibold transition-opacity hover:opacity-80"
-							style="background:var(--surface);color:var(--primary)"
+						<label class="block text-sm">
+							<span class="mb-1 block font-medium">Caption</span>
+							<input
+								type="text"
+								name="caption"
+								value={form?.caption ?? ''}
+								required
+								maxlength="200"
+								placeholder="What's on the tray?"
+								class="block w-full rounded-md text-sm"
+							/>
+						</label>
+
+						<div class="space-y-3">
+							<label class="block text-sm">
+								<span class="mb-1 block font-medium">Hall</span>
+								<select
+									name="dining_hall_id"
+									required
+									class="edit-field block w-full rounded-md text-sm"
+								>
+									<option value="">Select</option>
+									{#each halls as hall}
+										<option value={hall.id} selected={form?.hallId === hall.id}>{hall.name}</option>
+									{/each}
+								</select>
+							</label>
+
+							<fieldset class="text-sm">
+								<legend class="mb-1 font-medium">Rating</legend>
+								<StarRating
+									interactive
+									name="rating"
+									value={rating}
+									onSelect={(n) => (rating = n)}
+								/>
+							</fieldset>
+						</div>
+
+						<div class="grid grid-cols-2 gap-3">
+							<label class="block text-sm">
+								<span class="mb-1 block font-medium"
+									>Menu date <span class="font-normal" style="color:var(--text-muted)"
+										>(optional)</span
+									></span
+								>
+								<input
+									type="date"
+									name="menu_date"
+									value={form?.menuDate ?? ''}
+									class="block w-full rounded-md text-sm"
+								/>
+							</label>
+							<label class="block text-sm">
+								<span class="mb-1 block font-medium"
+									>Time <span class="font-normal" style="color:var(--text-muted)">(optional)</span
+									></span
+								>
+								<input
+									type="time"
+									name="menu_time"
+									value={form?.menuTime ?? ''}
+									class="block w-full rounded-md text-sm"
+								/>
+							</label>
+						</div>
+						<p class="text-xs" style="color:var(--text-muted)">
+							Leave blank for today. Time picks breakfast / lunch / dinner for old photos.
+						</p>
+
+						<button
+							type="submit"
+							disabled={rating < 1 || submitting}
+							class="inline-flex w-full items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold disabled:opacity-50"
+							style="background:var(--primary);color:var(--on-primary)"
 						>
-							{photoName ? 'Change photo' : 'Choose photo'}
-						</label>
-						{#if photoPreview}
-							<div class="composer-preview mt-2 overflow-hidden rounded-md">
-								<LoadedImage src={photoPreview} class="h-full w-full object-contain" />
-							</div>
-						{/if}
-						{#if photoName}
-							<p class="mt-1.5 truncate text-xs" style="color:var(--text-muted)">{photoName}</p>
-						{:else}
-							<p class="mt-1.5 text-xs" style="color:var(--text-muted)">JPG or PNG from your camera roll</p>
-						{/if}
-					</div>
-
-					<label class="block text-sm">
-						<span class="mb-1 block font-medium">Caption</span>
-						<input
-							type="text"
-							name="caption"
-							value={form?.caption ?? ''}
-							required
-							maxlength="200"
-							placeholder="What's on the tray?"
-							class="block w-full rounded-md text-sm"
-						/>
-					</label>
-
-					<div class="space-y-3">
-						<label class="block text-sm">
-							<span class="mb-1 block font-medium">Hall</span>
-							<select name="dining_hall_id" required class="block w-full rounded-md text-sm">
-								<option value="">Select</option>
-								{#each halls as hall}
-									<option value={hall.id} selected={form?.hallId === hall.id}>{hall.name}</option>
-								{/each}
-							</select>
-						</label>
-
-						<fieldset class="text-sm">
-							<legend class="mb-1 font-medium">Rating</legend>
-							<StarRating
-								interactive
-								name="rating"
-								value={rating}
-								onSelect={(n) => (rating = n)}
-							/>
-						</fieldset>
-					</div>
-
-					<div class="grid grid-cols-2 gap-3">
-						<label class="block text-sm">
-							<span class="mb-1 block font-medium"
-								>Menu date <span class="font-normal" style="color:var(--text-muted)">(optional)</span></span
-							>
-							<input
-								type="date"
-								name="menu_date"
-								value={form?.menuDate ?? ''}
-								class="block w-full rounded-md text-sm"
-							/>
-						</label>
-						<label class="block text-sm">
-							<span class="mb-1 block font-medium"
-								>Time <span class="font-normal" style="color:var(--text-muted)">(optional)</span></span
-							>
-							<input
-								type="time"
-								name="menu_time"
-								value={form?.menuTime ?? ''}
-								class="block w-full rounded-md text-sm"
-							/>
-						</label>
-					</div>
-					<p class="text-xs" style="color:var(--text-muted)">
-						Leave blank for today. Time picks breakfast / lunch / dinner for old photos.
-					</p>
-
-					<button
-						type="submit"
-						disabled={rating < 1 || submitting}
-						class="inline-flex w-full items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold disabled:opacity-50"
-						style="background:var(--primary);color:var(--on-primary)"
-					>
-						{#if submitting}
-							<span class="btn-spinner" aria-hidden="true"></span>
-							Posting…
-						{:else}
-							Post
-						{/if}
-					</button>
+							{#if submitting}
+								<span class="btn-spinner" aria-hidden="true"></span>
+								Posting…
+							{:else}
+								Post
+							{/if}
+						</button>
 					</fieldset>
 				</form>
 			</div>
