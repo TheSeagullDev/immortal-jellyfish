@@ -1,6 +1,7 @@
 <script>
 	import { page } from '$app/state';
 	import LoadedImage from './LoadedImage.svelte';
+	import ReportFlag from './ReportFlag.svelte';
 	import StarRating from './StarRating.svelte';
 
 	let { halls = [], signedIn = false } = $props();
@@ -13,7 +14,10 @@
 	const form = $derived(page.form);
 
 	$effect(() => {
-		if (form?.error && ('caption' in form || 'hallId' in form || 'rating' in form)) {
+		if (
+			form?.error &&
+			('caption' in form || 'hallId' in form || 'rating' in form || 'reportKind' in form)
+		) {
 			composerOpen = true;
 			const n = Number(form.rating);
 			if (n >= 1 && n <= 5) rating = n;
@@ -132,16 +136,29 @@
 					</button>
 				</div>
 
+				{#if form?.error}
+					<div
+						class="mb-3 rounded-md px-3 py-2 text-sm"
+						style="background:color-mix(in srgb,#b42318 10%,var(--background));color:#8a1f16"
+						role="alert"
+					>
+						<p>{form.error}</p>
+						{#if form.reportKind}
+							<ReportFlag
+								kind={form.reportKind}
+								summary="User says this classification reject is incorrect"
+								extra={{
+									caption: form.caption ?? '',
+									hallId: form.hallId ?? '',
+									menuDate: form.menuDate ?? '',
+									menuTime: form.menuTime ?? ''
+								}}
+							/>
+						{/if}
+					</div>
+				{/if}
+
 				<form method="POST" action="/?/create" enctype="multipart/form-data" class="space-y-3">
-					{#if form?.error}
-						<p
-							class="rounded-md px-3 py-2 text-sm"
-							style="background:color-mix(in srgb,#b42318 10%,var(--background));color:#8a1f16"
-							role="alert"
-						>
-							{form.error}
-						</p>
-					{/if}
 
 					<div class="block text-sm">
 						<span class="mb-1 block font-medium">Photo</span>
@@ -208,6 +225,34 @@
 							/>
 						</fieldset>
 					</div>
+
+					<div class="grid grid-cols-2 gap-3">
+						<label class="block text-sm">
+							<span class="mb-1 block font-medium"
+								>Menu date <span class="font-normal" style="color:var(--text-muted)">(optional)</span></span
+							>
+							<input
+								type="date"
+								name="menu_date"
+								value={form?.menuDate ?? ''}
+								class="block w-full rounded-md text-sm"
+							/>
+						</label>
+						<label class="block text-sm">
+							<span class="mb-1 block font-medium"
+								>Time <span class="font-normal" style="color:var(--text-muted)">(optional)</span></span
+							>
+							<input
+								type="time"
+								name="menu_time"
+								value={form?.menuTime ?? ''}
+								class="block w-full rounded-md text-sm"
+							/>
+						</label>
+					</div>
+					<p class="text-xs" style="color:var(--text-muted)">
+						Leave blank for today. Time picks breakfast / lunch / dinner for old photos.
+					</p>
 
 					<button
 						type="submit"

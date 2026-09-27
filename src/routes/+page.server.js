@@ -1,5 +1,8 @@
 import { fail } from '@sveltejs/kit';
+import { classifyPlate } from '$lib/classify-food.js';
+import { fetchTodayFoods, menuWhen } from '$lib/nutrislice.js';
 import { mapPosts, postsSelect } from '$lib/posts.js';
+import { handleReportAction } from '$lib/report.js';
 
 /** @type {import('./$types').PageServerLoad} */
 export const load = async ({ locals }) => {
@@ -37,19 +40,65 @@ export const actions = {
 		const caption = String(form.get('caption') ?? '').trim();
 		const hallId = String(form.get('dining_hall_id') ?? '');
 		const rating = Number(form.get('rating'));
+		const menuDate = String(form.get('menu_date') ?? '').trim();
+		const menuTime = String(form.get('menu_time') ?? '').trim();
 		const image = form.get('image');
 
 		if (!caption) {
-			return fail(400, { caption, hallId, rating, error: 'Caption is required.' });
+			return fail(400, { caption, hallId, rating, menuDate, menuTime, error: 'Caption is required.' });
 		}
 		if (!hallId) {
-			return fail(400, { caption, hallId, rating, error: 'Pick a dining hall.' });
+			return fail(400, { caption, hallId, rating, menuDate, menuTime, error: 'Pick a dining hall.' });
 		}
 		if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
-			return fail(400, { caption, hallId, rating, error: 'Rating must be 1–5.' });
+			return fail(400, { caption, hallId, rating, menuDate, menuTime, error: 'Rating must be 1–5.' });
 		}
 		if (!(image instanceof File) || image.size === 0) {
-			return fail(400, { caption, hallId, rating, error: 'Add a photo.' });
+			return fail(400, { caption, hallId, rating, menuDate, menuTime, error: 'Add a photo.' });
+		}
+
+		const { data: hall } = await locals.supabase
+			.from('dining_halls')
+			.select('slug')
+			.eq('id', hallId)
+			.maybeSingle();
+
+		const { isoDate, meals } = menuWhen(menuDate, menuTime);
+		const menu = await fetchTodayFoods(hall?.slug, isoDate, meals);
+		console.log('[classify] menu', {
+			hall: hall?.slug,
+			date: menu.date,
+			meals,
+			itemCount: menu.foods.length,
+			errors: menu.errors
+		});
+		const imageBytes = new Uint8Array(await image.arrayBuffer());
+		let foods = [];
+
+		try {
+			const classified = await classifyPlate({
+				bytes: imageBytes,
+				mimeType: image.type || 'image/jpeg',
+				menu: menu.foods
+			});
+
+			if (!classified.skipped && !classified.isFood) {
+				console.log('[classify] rejected', classified.rejectReason);
+				return fail(400, {
+					caption,
+					hallId,
+					rating,
+					menuDate,
+					menuTime,
+					error: "That doesn't look like a dining-hall meal. Post a photo of your plate.",
+					reportKind: 'classification'
+				});
+			}
+
+			foods = classified.matches.map((match) => match.name);
+		} catch (err) {
+			console.error('plate classify failed', err);
+			// Don't block posting if Gemini / Nutrislice is down.
 		}
 
 		const postId = crypto.randomUUID();
@@ -58,13 +107,13 @@ export const actions = {
 
 		const { error: uploadError } = await locals.supabase.storage
 			.from('food-images')
-			.upload(imagePath, image, {
+			.upload(imagePath, imageBytes, {
 				contentType: image.type || 'image/jpeg',
 				upsert: false
 			});
 
 		if (uploadError) {
-			return fail(400, { caption, hallId, rating, error: uploadError.message });
+			return fail(400, { caption, hallId, rating, menuDate, menuTime, error: uploadError.message });
 		}
 
 		const { error: insertError } = await locals.supabase.from('posts').insert({
@@ -73,16 +122,19 @@ export const actions = {
 			dining_hall_id: hallId,
 			image_path: imagePath,
 			caption,
-			rating
+			rating,
+			foods
 		});
 
 		if (insertError) {
 			await locals.supabase.storage.from('food-images').remove([imagePath]);
-			return fail(400, { caption, hallId, rating, error: insertError.message });
+			return fail(400, { caption, hallId, rating, menuDate, menuTime, error: insertError.message });
 		}
 
 		return { posted: true };
 	},
+
+	report: handleReportAction,
 
 	like: async ({ request, locals }) => {
 		const { user } = await locals.safeGetSession();

@@ -37,6 +37,16 @@
 	{/if}
 	<div class="space-y-2 p-3">
 		<p class="text-base leading-snug">{post.caption}</p>
+		{#if post.foods?.length}
+			<p class="flex flex-wrap gap-1">
+				{#each post.foods as name}
+					<span
+						class="rounded-full px-2 py-0.5 text-xs"
+						style="background:var(--muted);color:var(--text-muted)"
+					>{name}</span>
+				{/each}
+			</p>
+		{/if}
 		<div class="flex items-center justify-between gap-3">
 			<p class="text-sm" style="color:var(--text-muted)">{formatRelativeTime(post.createdAt)}</p>
 			{#if showHeart}
