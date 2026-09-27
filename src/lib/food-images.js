@@ -10,6 +10,12 @@ const memoryCache = new Map();
 
 let loggedMissingCacheTable = false;
 
+/** Clears in-process URL reuse so tests can start from a cold cache. */
+export function resetImageUrlCache() {
+	memoryCache.clear();
+	loggedMissingCacheTable = false;
+}
+
 /**
  * @param {string | null | undefined} path
  */
