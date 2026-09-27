@@ -1,7 +1,7 @@
 <script>
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
-	import { compressPhotoForUpload } from '$lib/compress-image-browser.js';
+	import { compressPhotoForUpload, PHOTO_TOO_LARGE_MESSAGE } from '$lib/compress-image-browser.js';
 	import LoadedImage from './LoadedImage.svelte';
 	import ReportFlag from './ReportFlag.svelte';
 	import StarRating from './StarRating.svelte';
@@ -66,6 +66,15 @@
 	 */
 	function onComposerKeydown(event) {
 		if (event.key === 'Escape') closeComposer();
+	}
+
+	/**
+	 * @param {import('@sveltejs/kit').ActionResult} result
+	 */
+	function isPayloadTooLarge(result) {
+		const status = 'status' in result ? result.status : 0;
+		const text = JSON.stringify(result.error ?? '');
+		return status === 413 || /payload|too large|413/i.test(text);
 	}
 </script>
 
@@ -184,17 +193,24 @@
 							if (file instanceof File && file.size > 0) {
 								formData.set('image', await compressPhotoForUpload(file));
 							}
-						} catch (err) {
+						} catch {
 							submitting = false;
-							clientError =
-								err instanceof Error ? err.message : 'Could not prepare that photo.';
+							clientError = PHOTO_TOO_LARGE_MESSAGE;
 							cancel();
 							return;
 						}
 						return async ({ result, update }) => {
-							await update();
 							submitting = false;
-							if (result.type === 'success') closeComposer();
+							if (result.type === 'success') {
+								await update();
+								closeComposer();
+								return;
+							}
+							if (result.type === 'error' || isPayloadTooLarge(result)) {
+								clientError = PHOTO_TOO_LARGE_MESSAGE;
+								return;
+							}
+							await update();
 						};
 					}}
 				>
